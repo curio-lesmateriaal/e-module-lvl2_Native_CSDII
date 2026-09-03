@@ -1,0 +1,14 @@
+{
+  "name": "e-module-template",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "e-module-builder build",
+    "dev": "e-module-builder dev",
+    "preview": "e-module-builder preview"
+  },
+  "devDependencies": {
+    "e-module-builder": "github:curio-team/e-module-builder"
+  }
+}
