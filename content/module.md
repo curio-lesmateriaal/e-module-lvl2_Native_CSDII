@@ -1,15 +1,14 @@
 ---
-name: CSS Grid
-subtitle: E-module
-youtube: https://www.youtube.com/watch?v=jV8B24rSN5o
-weeks: 4
+name: Native (in C#)
+subtitle: E-module CSD-II
+weeks: 7
 language: nl
-description: Leer in 4 weken professionele pagina-indelingen bouwen — van de
-  eerste kolommen tot een complete website.
-logoAlt: Schaalbaar
-exerciseMode: interactive
+exerciseMode: external
+description: OOP, Entity Framework Core en REST API's bouwen en consumeren in C#.
+logoAlt: Curio Software Development
 algemeen:
-  - Ik kan het verschil uitleggen tussen Flexbox en Grid
-  - Ik weet wat een grid container en grid item is
-  - Ik gebruik geen floats of positionering voor pagina-layout
+  - Ik kan een C#-project met meerdere classes overzichtelijk opzetten
+  - Ik kan een probleem uit de echte wereld vertalen naar een objectmodel
+  - Ik werk met versiebeheer en lever mijn werk in via Itslearning
+  - Ik kan mijn keuzes voor accessibility, EF Core en API's onderbouwen
 ---

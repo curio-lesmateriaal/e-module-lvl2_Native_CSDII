@@ -1,85 +1,78 @@
 ---
 week: 3
-title: Quiz Week 3 — Responsieve grids
+title: Quiz Week 3 — EF Core opzet & model
 passScore: 70
 questions:
   - id: w3q1
-    question: Wat doet repeat(4, 1fr)?
+    question: Waar staat ORM voor?
     options:
-      - 4 kolommen die de ruimte gelijk verdelen
-      - 4 rijen
-      - Herhaal de animatie 4 keer
-      - 4px gap
+      - Object Relational Mapper
+      - Online Resource Manager
+      - Ordered Record Model
+      - Object Reference Machine
     correct: 0
-    explanation: repeat(4, 1fr) maakt vier gelijke kolommen.
+    explanation: EF Core is een Object-Relational Mapper — de brug tussen C#-objecten en database-tabellen.
   - id: w3q2
-    question: Wat doet minmax(200px, 1fr)?
+    question: Wat is het belangrijkste voordeel van werken met EF Core?
     options:
-      - Exact 200px breed
-      - Alleen op desktop
-      - Minimaal 200px, maximaal een deel van de vrije ruimte
-      - Verbergt kleine schermen
-    correct: 2
-    explanation: minmax stelt een minimum en maximum in voor een track.
+      - Je database wordt automatisch geback-upt
+      - Je hoeft vrijwel geen handmatig SQL te schrijven
+      - Je hebt geen database meer nodig
+      - Je code draait altijd sneller
+    correct: 1
+    explanation: Je blijft in C# programmeren; EF Core vertaalt naar SQL.
   - id: w3q3
-    question: Hoeveel kolommen heeft dit grid?
-    preview:
-      css: ".demo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-        .demo > div { padding: 10px; background: #52525b; color: white;
-        text-align: center; font-size: 12px; }"
-      html: <div class="demo"><div>1</div><div>2</div><div>3</div></div>
+    question: Wat is een migration?
     options:
-      - "2"
-      - "3"
-      - "4"
-      - "6"
-    correct: 1
-    explanation: repeat(3, 1fr) definieert 3 kolommen.
-  - id: w3q4
-    question: Wat is het verschil tussen auto-fit en auto-fill?
-    options:
-      - Geen verschil
-      - auto-fit klapt lege tracks in, auto-fill behoudt ze
-      - auto-fill is alleen voor mobiel
-      - auto-fit is voor rijen
-    correct: 1
-    explanation: auto-fit laat items de beschikbare ruimte vullen.
-  - id: w3q5
-    question: Welke code maakt 2 kolommen op tablet?
-    options:
-      - "@media (max-width: 900px) { .grid { grid-template-columns: repeat(2,
-        1fr); } }"
-      - ".grid { columns: 2; }"
-      - "@media (max-width: 900px) { .grid { display: block; } }"
-      - "grid-template-columns: tablet;"
-    correct: 0
-    explanation: Media queries met aangepaste grid-template-columns is de standaard aanpak.
-  - id: w3q6
-    question: Welk patroon hoort bij een webshop op mobiel?
-    options:
-      - 4 kolommen op alle schermen
-      - Alleen Flexbox op mobiel
-      - 4 kolommen desktop → 2 tablet → 1 mobiel
-      - Grid uitzetten op mobiel
+      - Het verhuizen van je project naar een andere computer
+      - Een back-up van je database
+      - Een 'patch' die je database in de juiste vorm brengt voor die versie van je app
+      - Een lijst met gebruikers
     correct: 2
-    explanation: Breakpoints met steeds minder kolommen is het klassieke responsive
-      grid-patroon.
-  - id: w3q7
-    question: Welk CSS-snippet past het beste bij automatisch wrappende productkaarten?
+    explanation: Migrations houden je databasestructuur in de pas met je C#-classes.
+  - id: w3q4
+    question: Je gebruikt .NET 8.0. Welke package-versie kies je?
     options:
-      - "grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));"
-      - "grid-template-columns: 250px;"
-      - "float: left; width: 25%;"
-      - "display: flex; flex-wrap: nowrap;"
+      - De allernieuwste, bijv. 9.0.0
+      - Altijd 1.0.0
+      - De hoogste versie die begint met 8.
+      - Maakt niet uit
+    correct: 2
+    explanation: Kies de laatste minor versie die bij je .NET-versie past (bij .NET 8 dus 8.*).
+  - id: w3q5
+    question: Waarom maak je in je model properties en geen fields?
+    options:
+      - EF Core werkt met properties (get/set)
+      - Fields bestaan niet in C#
+      - Properties zijn korter
+      - Fields kunnen niet public zijn
     correct: 0
-    explanation: auto-fit + minmax is populair voor flexibele kaartgrids.
-  - id: w3q8
-    question: Waarom combineer je media queries met Grid?
+    explanation: EF Core leest je model via properties; met kale fields werkt het niet.
+  - id: w3q6
+    question: Wat doet de OnConfiguring-methode?
     options:
-      - Dat kan niet
-      - Om het aantal kolommen aan te passen per schermbreedte
-      - Alleen voor kleuren
-      - Om Grid te vervangen door tables
-    correct: 1
-    explanation: Responsive layout = andere grid-definitie per breakpoint.
+      - Ze maakt de migratie aan
+      - Ze vult de database met testdata
+      - Ze genereert de C#-classes
+      - Ze maakt verbinding met de database via de connection string
+    correct: 3
+    explanation: OnConfiguring wordt door EF Core aangeroepen om de verbinding op te zetten.
+  - id: w3q7
+    question: "Je wilt de class Klant opslaan. Welke regel hoort in je DbContext?"
+    options:
+      - "public Klant Klanten { get; set; }"
+      - "public List<Klant> Klanten;"
+      - "public DbSet<Klant> Klanten { get; set; }"
+      - "public DbSet Klanten = new Klant();"
+    correct: 2
+    explanation: Voor elke op te slaan class maak je een DbSet-property met de class tussen < >.
+  - id: w3q8
+    question: In welke volgorde voer je deze commando's uit?
+    options:
+      - Eerst Add-Migration, daarna Update-Database
+      - Update-Database, daarna Add-Migration
+      - Alleen Update-Database is genoeg
+      - De volgorde maakt niet uit
+    correct: 0
+    explanation: Add-Migration maakt het migratiebestand; Update-Database voert het uit op de database.
 ---

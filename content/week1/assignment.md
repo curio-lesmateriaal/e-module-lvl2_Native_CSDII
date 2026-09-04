@@ -1,42 +1,44 @@
 ---
 week: 1
-title: GridCafé — je eerste klantpagina
+title: Autoverhuur De Sleutel — het objectmodel
 subtitle: Inleveropdracht Week 1
-client: GridCafé Rotterdam
-maxPoints: 11
+client: Autoverhuur De Sleutel
+maxPoints: 12
 deliverables:
-  - index.html met semantische HTML (header, nav, main, aside, footer)
-  - styles.css met je grid-layout
-  - Screenshot van de pagina in de browser
+  - Een C#-console-project met minimaal de classes Voertuig, Klant en Verhuur
+  - Een Program.cs die een paar objecten aanmaakt en een korte demo in de console toont
+  - Een kort tekstbestand (of README) waarin je je modelkeuzes uitlegt
 criteria:
   - id: w1h1
-    text: "De layout gebruikt display: grid op de hoofdcontainer"
-    points: 2
+    text: Er zijn minimaal drie samenhangende classes met logische fields/properties
+    points: 3
   - id: w1h2
-    text: Er zijn minstens twee kolommen gedefinieerd (bijv. 1fr en een vaste
-      breedte)
+    text: Elke class heeft een constructor die de verplichte gegevens instelt
     points: 2
   - id: w1h3
-    text: gap is toegepast voor ruimte tussen onderdelen
-    points: 1
+    text: Een Verhuur heeft een referentie naar een Voertuig én een Klant
+    points: 2
   - id: w1h4
-    text: Header, nav, main, sidebar en footer zijn allemaal zichtbaar en op de
-      juiste plek
-    points: 3
+    text: Er is minimaal één methode met gedrag (bijv. Verhuur.BerekenPrijs of Voertuig.MarkeerAlsVerhuurd)
+    points: 2
   - id: w1h5
-    text: "Geen floats of position: absolute voor de layout"
+    text: Program.cs maakt objecten aan en roept methoden aan; de output klopt
     points: 2
   - id: w1h6
-    text: Code is netjes ingesprongen en leesbaar
+    text: Namen zijn in het Nederlands of Engels consequent; code is netjes ingesprongen
     points: 1
 tips:
-  - Begin met de HTML-structuur voordat je CSS schrijft.
-  - Test je layout door tijdelijk een achtergrondkleur per onderdeel te geven.
-  - Kijk terug naar oefening 8 als je vastloopt.
+  - Begin met opschrijven welke gegevens De Sleutel per voertuig, klant en verhuur wil bijhouden.
+  - Laat een Verhuur naar bestaande objecten verwijzen — maak niet in elke Verhuur een nieuwe Klant.
+  - Kijk terug naar het RaceCar/RaceDriver-voorbeeld uit de theorie voor het doorgeven van referenties.
 ---
 
-GridCafé is een nieuwe koffiebar die binnenkort opent. De eigenaar, Samira, wil een simpele one-pager online zetten. Ze heeft al tekst en foto's, maar de layout klopt nog niet. Jij bent de developer die de pagina-indeling bouwt — alleen met CSS Grid, geen floats of positionering.
+Autoverhuur De Sleutel verhuurt auto's en bestelbussen aan particulieren en bedrijven. Nu gaat alles nog met een schrift achter de balie: welk voertuig is verhuurd, aan wie, en van wanneer tot wanneer. De eigenaar wil dit gaan automatiseren en vraagt jou om als eerste stap het *objectmodel* te ontwerpen — nog zonder database, gewoon in C#.
 
-Bouw een HTML-pagina met een complete layout: logo/header, navigatie, hoofdinhoud (welkomsttekst + foto), sidebar (openingstijden + adres) en footer. Alles moet netjes op zijn plek staan met CSS Grid.
+Bouw een console-app met een objectmodel voor De Sleutel. Bedenk welke classes er nodig zijn (denk minimaal aan `Voertuig`, `Klant` en `Verhuur`) en welke fields of properties elke class krijgt. Geef elke class een constructor. Zorg dat een `Verhuur` een referentie heeft naar een bestaand `Voertuig` en een bestaande `Klant`. Voeg minstens één methode met echt gedrag toe, bijvoorbeeld een methode die de huurprijs berekent op basis van het aantal dagen, of een methode die een voertuig op "verhuurd" zet. Maak in `Program.cs` een paar voertuigen, klanten en verhuringen aan en laat in de console zien dat je model werkt.
 
-[Hier een startpunt voor je HTML](./assets/test-startpunt.zip)
+Je hoeft nog geen invoer van de gebruiker te verwerken en nog niets op te slaan — daar gaan de volgende weken over.
+
+## Inleveren
+
+Lever je project (als `.zip`) plus je uitleg in via **Itslearning**, onder de map "Module: Native (C#)". Je docent geeft feedback op je objectmodel.

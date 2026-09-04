@@ -1,38 +1,38 @@
 ---
 week: 2
-title: De Wijkkrant — nieuws op het net
+title: De Sleutel — een veilig objectmodel
 subtitle: Inleveropdracht Week 2
-client: De Wijkkrant Delfshaven
+client: Autoverhuur De Sleutel
 maxPoints: 12
 deliverables:
-  - index.html met alle artikel-blokken
-  - styles.css met grid-template-areas en grid-area per item
-  - Screenshot van de layout
+  - Je week 1-project, uitgebreid met doordachte access modifiers
+  - Een korte toelichting per class waarin je je keuzes uitlegt
 criteria:
   - id: w2h1
-    text: grid-template-areas is gebruikt op de container
-    points: 2
+    text: Fields die niet van buitenaf gewijzigd mogen worden zijn private (of private set)
+    points: 3
   - id: w2h2
-    text: Header en menu spannen over de volle breedte
-    points: 2
+    text: Er zijn public methoden waarmee andere objecten gecontroleerd wijzigingen doorvoeren
+    points: 3
   - id: w2h3
-    text: Artikelen A, B en C staan op één rij
+    text: Minstens één zinvolle static member (bijv. een standaardwaarde of een teller)
     points: 2
   - id: w2h4
-    text: Artikel D spant over twee kolommen
-    points: 3
-  - id: w2h5
-    text: Elk element heeft de juiste grid-area
+    text: De toelichting legt per class uit waarom iets public of private is
     points: 2
-  - id: w2h6
-    text: Layout is visueel herkenbaar als een nieuwswebsite
-    points: 1
+  - id: w2h5
+    text: Het project compileert en de demo in Program.cs werkt nog steeds
+    points: 2
 tips:
-  - 'Teken eerst je areas op papier: "header header header" enz.'
-  - Gebruik verschillende achtergrondkleuren per artikel om te controleren.
-  - Het laatste rij-template moet "d d e" zijn, niet drie keer hetzelfde.
+  - Begin private, maak alleen public wat echt van buitenaf nodig is.
+  - Een static teller voor het aantal aangemaakte verhuringen is een mooi voorbeeld.
+  - Gebruik `{ get; private set; }` voor een property die je van buiten wel wilt lezen maar niet wijzigen.
 ---
 
-De Wijkkrant is een gratis buurtkrant die nu ook online wil. Redacteur Pieter wil dat het artikel over het buurtfeest extra groot wordt weergegeven — het moet over twee kolommen spannen, net als in de papieren versie. Jij ontwerpt de grid-layout met grid-template-areas.
+De eigenaar van De Sleutel schrok toen een stagiair per ongeluk in de code alle dagprijzen op 0 zette. "Kan de code niet gewoon voorkomen dat dat kan?" Dat kan — met de juiste toegankelijkheid.
 
-Maak een nieuws-pagina met: header (logo + titel), menubalk, drie kleine artikelen (A, B, C) op één rij, en daaronder een groot artikel (D) dat twee kolommen breed is naast een kleiner artikel (E).
+Neem je objectmodel van week 1 en maak het "veilig". Zet fields die alleen de class zelf hoort te wijzigen op `private` en bied waar nodig public methoden aan om ze gecontroleerd te veranderen (bijvoorbeeld: de dagprijs mag alleen verhoogd of verlaagd worden via een methode die niet onder de 0 komt). Voeg minstens één zinvolle `static` member toe, bijvoorbeeld een standaard-dagprijs voor nieuwe voertuigen of een static teller die bijhoudt hoeveel verhuringen er in totaal zijn gemaakt. Schrijf per class een paar zinnen toelichting waarin je uitlegt waarom je iets public of private hebt gemaakt.
+
+## Inleveren
+
+Lever je bijgewerkte project (als `.zip`) met de toelichting in via **Itslearning**, onder de map "Module: Native (C#)".

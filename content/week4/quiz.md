@@ -1,61 +1,78 @@
 ---
 week: 4
-title: Quiz Week 4 — Eindproject
+title: Quiz Week 4 — CRUD met EF Core
 passScore: 70
 questions:
   - id: w4q1
-    question: Wat is het doel van het eindproject?
+    question: Welke methode voegt een nieuw object toe aan een DbSet?
     options:
-      - Alleen theorie herhalen
-      - JavaScript leren
-      - Zelfstandig een realistische layout bouwen met Grid
-    correct: 2
-    explanation: Week 4 is de praktische toepassing van alles wat je hebt geleerd.
+      - Insert()
+      - Add()
+      - New()
+      - Create()
+    correct: 1
+    explanation: "`dbContext.Companies.Add(myCompany);` voegt het object toe aan de tracking; SaveChanges slaat het op."
   - id: w4q2
-    question: Wanneer combineer je Grid met Flexbox in een eindproject?
+    question: Wat gebeurt er als je Add() aanroept maar SaveChanges() vergeet?
     options:
-      - Nooit
-      - Grid voor de pagina-layout, Flexbox voor componenten (bijv. inhoud in
-        kaarten)
-      - Altijd alleen Flexbox
-      - Alleen op mobiel
+      - Het object wordt toch opgeslagen
+      - Het object wordt niet in de database opgeslagen
+      - Je krijgt een compilerfout
+      - De hele database wordt gewist
     correct: 1
-    explanation: Grid = grote indeling, Flexbox = kleine onderdelen binnen componenten.
+    explanation: EF slaat pas op bij een expliciete SaveChanges-aanroep.
   - id: w4q3
-    question: Wat hoort NIET bij een goede eindproject-layout?
+    question: Welke methode geeft null terug als er niets gevonden wordt?
     options:
-      - "display: grid voor de hoofdstructuur"
-      - grid-template-areas of grid-column
-      - "float: left voor de sidebar"
-      - Responsive ontwerp
+      - Single()
+      - First()
+      - FirstOrDefault()
+      - Add()
     correct: 2
-    explanation: Gebruik Grid voor structurele layout, geen floats.
+    explanation: FirstOrDefault geeft de default-waarde (null voor objecten) als de query niets oplevert.
   - id: w4q4
-    question: Welke layout past bij een dashboard-eindproject?
+    question: Hoe wijzig je de naam van een bestaande klant in de database?
     options:
-      - Alleen één kolom tekst
-      - Header, menu, content-gebied en statistiek-kaarten in een grid
-      - Een tabel voor de hele pagina
-      - "position: absolute overal"
-    correct: 1
-    explanation: Een dashboard gebruikt meerdere grid-gebieden voor verschillende secties.
-  - id: w4q5
-    question: "Voor een portfolio met 4 projecten op desktop: welke aanpak is het beste?"
-    options:
-      - "grid-template-columns: repeat(4, 1fr) met media queries voor kleinere
-        schermen"
-      - Vier aparte HTML-pagina's
-      - Alleen inline styles
-      - Eén kolom op alle schermen
+      - Klant ophalen, property aanpassen, SaveChanges op dezelfde context
+      - Een nieuwe Klant maken met dezelfde Id
+      - Klanten.Update(naam) aanroepen
+      - Dat kan niet met EF Core
     correct: 0
-    explanation: Responsive grid met breakpoints is de juiste aanpak.
-  - id: w4q6
-    question: Wat is een optionele maar waardevolle extra op het eindproject?
+    explanation: Dankzij Change Tracking herkent EF de wijziging en bouwt het de UPDATE-query.
+  - id: w4q5
+    question: Waarom moet je SaveChanges aanroepen op dezelfde context als waar je de data hebt opgehaald?
     options:
-      - Tables voor layout
-      - Geen CSS gebruiken
-      - Alleen afbeeldingen zonder HTML
-      - Hover-effecten en donkere modus
-    correct: 3
-    explanation: Hover en dark mode laten zien dat je verder kijkt dan de basis-layout.
+      - Anders is de verbinding verbroken
+      - Alleen die context houdt via Change Tracking bij wat er is gewijzigd of verwijderd
+      - Het is sneller
+      - Dat hoeft niet
+    correct: 1
+    explanation: Change Tracking hoort bij één context-instantie.
+  - id: w4q6
+    question: Wat is een 'roundtrip' in de context van batching?
+    options:
+      - Een backup-cyclus
+      - Het heen en weer sturen van gegevens tussen client en server
+      - Een lus in je code
+      - Een migratie terugdraaien
+    correct: 1
+    explanation: EF bundelt meerdere opdrachten in één roundtrip om het verkeer met de database te beperken.
+  - id: w4q7
+    question: Welke methode markeert een object voor verwijdering?
+    options:
+      - Delete()
+      - Drop()
+      - Remove()
+      - Clear()
+    correct: 2
+    explanation: "`db.Chats.Remove(chat);` gevolgd door `db.SaveChanges();` verwijdert de rij."
+  - id: w4q8
+    question: Je verwijdert een Voertuig waar nog Verhuren naar verwijzen. Wat is waar?
+    options:
+      - EF verwijdert automatisch alles, altijd, zonder configuratie
+      - Je krijgt foutmeldingen tenzij je de afhankelijke data verwijdert of de relatie verbreekt (bijv. via Cascade Delete)
+      - Het voertuig wordt stilletjes overgeslagen
+      - De hele tabel wordt geleegd
+    correct: 1
+    explanation: Afhankelijke gegevens moeten mee verwijderd of ontkoppeld worden; daarvoor bestaat Cascade Delete.
 ---

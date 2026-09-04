@@ -1,83 +1,78 @@
 ---
 week: 1
-title: Quiz Week 1 — Pagina indelen
+title: Quiz Week 1 — OOP in C#
 passScore: 70
 questions:
   - id: w1q1
-    question: Waarvoor gebruik je CSS Grid vooral?
+    question: Wat is een class in C#?
     options:
-      - Tekst kleuren instellen
-      - Animaties maken
-      - Tweedimensionale pagina-layouts (rijen én kolommen)
-      - Alleen navigatiebalken
-    correct: 2
-    explanation: Grid is bedoeld voor layouts in twee richtingen tegelijk.
+      - Een specifiek exemplaar met ingevulde waarden
+      - Een sjabloon met eigenschappen (fields) en mogelijkheden (methoden)
+      - Een methode die objecten opruimt
+      - Een variabele die altijd public is
+    correct: 1
+    explanation: Een class is de blauwdruk/het sjabloon. Een object is een ingevuld exemplaar daarvan.
   - id: w1q2
-    question: Wanneer kies je Flexbox in plaats van Grid?
+    question: Waar dient de constructor van een class voor?
     options:
-      - Voor een complete pagina-indeling
-      - Voor componenten in één richting (bijv. menu-items in een rij)
-      - Nooit, Grid is altijd beter
-      - Alleen op mobiel
-    correct: 1
-    explanation: Flexbox = één dimensie. Grid = pagina-layout.
+      - Het object opruimen als het niet meer gebruikt wordt
+      - Een kopie van het object maken
+      - Een nieuw object opbouwen en beginwaarden instellen
+      - De class omzetten naar JSON
+    correct: 2
+    explanation: De constructor wordt uitgevoerd bij `new` en zet het object in een bruikbare begintoestand.
   - id: w1q3
-    question: Welke property activeert CSS Grid op een element?
+    question: "Welke regel maakt een nieuw object aan volgens het sjabloon Car?"
     options:
-      - "grid: on"
-      - "layout: grid"
-      - "position: grid"
-      - "display: grid"
-    correct: 3
-    explanation: "display: grid maakt het element een grid container."
+      - "Car myCar = Car(\"BMW\", \"M4\", \"Black\", 300);"
+      - "new Car myCar = (\"BMW\", \"M4\", \"Black\", 300);"
+      - "Car myCar = new Car(\"BMW\", \"M4\", \"Black\", 300);"
+      - "Car.new(\"BMW\", \"M4\", \"Black\", 300);"
+    correct: 2
+    explanation: Je gebruikt `new Car(...)` en geeft tussen haakjes de parameters voor de constructor op.
   - id: w1q4
-    question: "Wat doet grid-template-columns: 1fr 200px?"
+    question: Je hebt twee Car-objecten. Je roept `auto1.Brake()` aan. Wat gebeurt er met auto2?
     options:
-      - Een flexibele kolom en een vaste kolom van 200px
-      - Twee rijen
-      - 200 kolommen
-      - Alleen gap instellen
+      - Niets, methoden werken op één specifiek object
+      - auto2 remt ook af
+      - Er ontstaat een compilerfout
+      - auto2 wordt verwijderd
     correct: 0
-    explanation: 1fr deelt vrije ruimte, 200px is een vaste breedte.
+    explanation: Een instance-methode werkt alleen op het object waarop je hem aanroept.
   - id: w1q5
-    question: Wat is een grid item?
+    question: Welke van deze types is een value type in C#?
     options:
-      - "Het element met display: grid"
-      - Elk element op de pagina
-      - Een direct kind van de grid container
-      - Alleen een div
-    correct: 2
-    explanation: Alleen directe kinderen van de container worden grid items.
-  - id: w1q6
-    question: Welk CSS-snippet maakt twee gelijke kolommen?
-    preview:
-      css: ".demo { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; } .demo >
-        div { padding: 12px; background: #71717a; color: white; text-align:
-        center; }"
-      html: <div class="demo"><div>1</div><div>2</div></div>
-    options:
-      - "display: flex;"
-      - "float: left;"
-      - "display: grid; grid-template-columns: 1fr 1fr;"
-      - "grid-template-rows: 2;"
-    correct: 2
-    explanation: grid-template-columns met twee 1fr-kolommen deelt de ruimte gelijk.
-  - id: w1q7
-    question: Waarom gebruik je geen floats voor pagina-layout?
-    options:
-      - Floats zijn deprecated
-      - Floats zijn voor tekstomloop, niet voor structurele layouts
-      - Floats werken niet in Chrome
-      - Floats zijn trager
+      - string
+      - int
+      - Een zelfgemaakte class
+      - Een array
     correct: 1
-    explanation: Grid is gemaakt voor betrouwbare pagina-indelingen.
-  - id: w1q8
-    question: Wat doet de gap property?
+    explanation: "int, float, double, char, bool, struct en enums zijn value types; de meeste andere types (waaronder string en classes) zijn reference types."
+  - id: w1q6
+    question: "Een <code>int</code>-variabele <code>number</code> is 5. Je geeft <code>number</code> mee aan een methode; in die methode wordt de parameter op 10 gezet. Wat is <code>number</code> daarna?"
     options:
-      - Padding binnen items
-      - Buitenmarge van de body
-      - Ruimte tussen grid-items
-      - Border-radius
+      - "10"
+      - "5"
+      - "0"
+      - Niets, het geeft een fout
+    correct: 1
+    explanation: number is een value type; de methode krijgt een kopie. De originele variabele blijft 5.
+  - id: w1q7
+    question: "Je maakt <code>var obj = new SimpleClass(5)</code>. Je geeft <code>obj</code> mee aan een methode die <code>o.Value = 10</code> uitvoert. Wat is <code>obj.Value</code> daarna?"
+    options:
+      - "5"
+      - Niets, het geeft een fout
+      - "10"
+      - "null"
     correct: 2
-    explanation: gap bepaalt de ruimte tussen rijen en kolommen.
+    explanation: Een class is een reference type. De methode werkt op hetzelfde object, dus Value is nu 10.
+  - id: w1q8
+    question: Waarom geef je in een racespel de RaceCar mee aan de RaceDriver-constructor?
+    options:
+      - Zodat de RaceDriver een referentie heeft en de methoden van die auto kan aanroepen
+      - Omdat een constructor altijd een parameter nodig heeft
+      - Zodat er een kopie van de auto ontstaat voor de driver
+      - Dat is niet nodig, de driver vindt de auto vanzelf
+    correct: 0
+    explanation: Via de meegegeven referentie kan de driver op verschillende plekken in zijn code `Car.Accelerate()` en dergelijke aanroepen.
 ---

@@ -1,4 +1,0 @@
----
-title: 'Extra'
-color: violet
----

@@ -1,43 +1,45 @@
 ---
 week: 4
-title: Eindopdracht — jouw eigen case
+title: De Sleutel — beheerconsole
 subtitle: Inleveropdracht Week 4
-client: Vrij te kiezen
+client: Autoverhuur De Sleutel
 maxPoints: 14
 deliverables:
-  - Complete HTML + CSS bestanden
-  - Korte toelichting (tekstbestand of in de pagina zelf)
-  - Screenshot desktop + mobiel
-  - "Optioneel: hover-effecten of donkere modus"
+  - Een console-app die met een menu de vier CRUD-bewerkingen op voertuigen uitvoert
+  - De gegevens blijven bewaard na afsluiten (ze staan in de database)
+  - Screenshot van de database vóór en ná een paar bewerkingen
 criteria:
   - id: w4h1
-    text: Complete pagina-layout met CSS Grid (geen floats)
-    points: 3
+    text: Er is een menu (bijv. met een while-lus en Console.ReadLine) met de opties toevoegen, tonen, wijzigen, verwijderen, stoppen
+    points: 2
   - id: w4h2
-    text: Minstens één techniek uit week 2 (areas, spanning of grid-column)
-    points: 2
-  - id: w4h3
-    text: "Responsive: layout werkt op desktop én mobiel"
+    text: Toevoegen leest gegevens in, maakt een object, doet Add en SaveChanges
     points: 3
-  - id: w4h4
-    text: Grid en Flexbox zijn slim gecombineerd waar nodig
+  - id: w4h3
+    text: Tonen haalt alle voertuigen op en print ze
     points: 2
+  - id: w4h4
+    text: Wijzigen haalt één voertuig op (bijv. op kenteken), past het aan en slaat op
+    points: 3
   - id: w4h5
-    text: Visueel aantrekkelijk en professioneel ogend
+    text: Verwijderen haalt één voertuig op, doet Remove en SaveChanges
     points: 2
   - id: w4h6
-    text: Toelichting aanwezig met uitleg van je keuzes
-    points: 2
-  - id: w4h7
-    text: "Optioneel: hover-effecten of dark mode (+1 bonuspunt)"
+    text: Elke bewerking gebruikt een context binnen een using-blok; SaveChanges op dezelfde context
     points: 1
-    optional: true
+  - id: w4h7
+    text: Ongeldige invoer (bijv. onbekend kenteken) geeft een nette melding in plaats van een crash
+    points: 1
 tips:
-  - Kijk terug naar het Dashboard- of Portfolio-voorbeeld in de module.
-  - Begin met grid-template-areas voor het grote plaatje.
-  - Lever netjes in via het platform dat je docent aangeeft.
+  - Gebruik `FirstOrDefault` en check op `null` voordat je wijzigt of verwijdert.
+  - Zet elke menukeuze in een eigen methode — dat houdt Main klein.
+  - 'Test of je gegevens echt bewaard blijven: sluit de app, start opnieuw, kies "tonen".'
 ---
 
-Het is tijd om alles samen te brengen. Kies één van twee opdrachten: bouw een dashboard voor een fictieve app (bijv. fitness, weer, verkoop) óf een portfolio-pagina voor een creatief persoon. De layout moet eruitzien als een echte website — niet als een oefening.
+De balie van De Sleutel wil niet in Visual Studio hoeven werken. Ze willen een simpel programma met een menu waarmee ze voertuigen kunnen toevoegen, bekijken, aanpassen en verwijderen — en dat alles bewaard blijft.
 
-Lever een afgerond project in met een complete grid-layout, responsive ontwerp, en een korte schriftelijke toelichting (5–10 zinnen) waarin je uitlegt welke grid-technieken je hebt gebruikt en waarom.
+Bouw een console-app bovenop je database van week 3. Maak een menu met de opties: voertuig toevoegen, alle voertuigen tonen, een voertuig wijzigen, een voertuig verwijderen, en stoppen. Elke optie werkt via de `DeSleutelContext`: toevoegen met `Add` + `SaveChanges`, tonen door de `DbSet` te doorlopen, wijzigen door een voertuig op te halen (bijvoorbeeld op kenteken), een property aan te passen en op te slaan, en verwijderen met `Remove` + `SaveChanges`. Zorg dat het programma niet crasht als de gebruiker een kenteken invoert dat niet bestaat.
+
+## Inleveren
+
+Lever je project (als `.zip`, zonder `bin/` en `obj/`) met de screenshots in via **Itslearning**, onder de map "Module: Native (C#)".

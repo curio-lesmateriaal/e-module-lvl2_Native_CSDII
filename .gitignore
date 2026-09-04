@@ -4,6 +4,10 @@ dist
 *.log
 .env
 
+# bronmateriaal (moduleboekje) — niet nodig voor de build
+_bron/
+Moduleboekje_CSDII_v1.3.pdf
+
 # frontend assets managed by e-module-builder (overwritten on every build)
 src/
 
