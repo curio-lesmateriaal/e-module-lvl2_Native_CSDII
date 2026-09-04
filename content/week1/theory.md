@@ -12,37 +12,6 @@ leeruitkomsten:
   - Ik ken het verschil tussen value-types en reference-types en kan voorspellen wat een methode met een parameter doet
 ---
 
-## Over deze module
-
-In deze module leer je werken met **Objectgeoriënteerd Programmeren (OOP)**, **WinUI**, **Entity Framework Core (EF Core)** en **API's** binnen C#. We herhalen ook enkele basisprincipes uit eerdere modules.
-
-- **OOP:** je leert hoe je klassen en objecten gebruikt, en hoe je je code schoon en overzichtelijk houdt.
-- **WinUI:** hiermee bouw je moderne desktopinterfaces voor Windows-toepassingen. WinUI oefen je in de lessen en praktijkopdrachten; deze e-module richt zich op de C#-kant.
-- **EF Core:** een ORM waarmee je eenvoudig met databases werkt via C#-code, zonder handmatig SQL te schrijven.
-- **API's:** je leert hoe je REST API's maakt en gebruikt om gegevens uit te wisselen tussen applicaties.
-
-Deze module is de ondersteuning bij de praktijkopdrachten van dit blok. Als voorkennis is CSD-I vereist; je hebt een basis van C# nodig.
-
-<x-callout type="info">
-
-**Meetmomenten.** Bij deze module horen een aantal meetmomenten. Je dient voor deze meetmomenten samen een gemiddelde boven de 5,5 te hebben. Je gemiddelde en je cijfers zijn te vinden op SmartPoints. Deze cijfers worden gegeven voor een toets of een CGI.
-
-</x-callout>
-
-### Studiewijzer
-
-| Week (e-module) | Onderwerpen | Studiewijzer |
-|---|---|---|
-| 1 — OOP in C# | Models, classes, objects, references | Week 1 |
-| 2 — Accessibility & static | public, private, internal, protected, static | Week 2 |
-| 3 — EF Core: opzet & model | Packages, migrations, models, DbContext | Week 3 |
-| 4 — EF Core: CRUD in een console-app | Console-app, gegevens invoeren/wijzigen/verwijderen | Week 4–6 |
-| 5 — API: concept & consumeren | API-concept, API uitlezen met HttpClient, JSON | Week 7–8, 10 |
-| 6 — API: zelf bouwen | API bouwen met HttpListener, routing | Week 9 |
-| 7 — API + EF Core | API-data aanleveren vanuit EF Core, validatie | Week 11–12 |
-
-De weken 13 t/m 16 uit de studiewijzer zijn buffer- en toetsweken: je maakt en levert je eindopdracht op.
-
 ## 1.1 Inleiding
 
 OOP staat voor 'Object Oriented Programming' en het betekent zoveel als "we focussen ons op objecten". In OOP is alles een object en een object heeft eigenschappen en mogelijkheden. In C# heb je al eerder met objecten gewerkt. In de komende weken ga je echter veel meer focussen op deze objecten en je gaat programma's maken die helemaal uit objecten bestaan.
