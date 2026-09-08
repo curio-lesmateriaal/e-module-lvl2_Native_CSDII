@@ -3,24 +3,20 @@ week: 3
 title: EF Core — opzet & model
 goal: je kunt een C#-project met Entity Framework Core aan een MySQL-database koppelen, een model schrijven en met migrations je database aanmaken
 accent: emerald
-summary: Entity Framework Core is een ORM waarmee je met C#-code met een database werkt, zonder SQL. Je leert wat migrations zijn, welke packages je nodig hebt, hoe je een model en een DbContext schrijft en hoe je stap voor stap een nieuw EF Core-project opzet.
+summary: Entity Framework Core is een ORM waarmee je met C#-code met een database werkt, zonder SQL. Je leert wat een ORM is, welke packages je nodig hebt, hoe je een model en een DbContext schrijft en wat migrations zijn waarmee je je database aanmaakt en up-to-date houdt.
 leeruitkomsten:
   - Ik kan uitleggen wat een ORM is en welk probleem EF Core oplost
-  - Ik kan uitleggen wat een migration is en waarom je die gebruikt
   - Ik weet welke NuGet-packages ik nodig heb en hoe ik de juiste versie kies
   - Ik kan een model schrijven met properties en een DbContext met OnConfiguring en DbSet
+  - Ik kan uitleggen wat een migration is en waarom je die gebruikt
   - Ik kan met Add-Migration en Update-Database mijn database aanmaken
 ---
 
 ## 3.1 Inleiding
 
-In dit hoofdstuk leer je hoe je met behulp van Entity Framework Core eenvoudig verbinding kunt maken met een database, hoe je ervoor zorgt dat je database up-to-date blijft en hoe je je database inricht — genormaliseerd en wel — door goed na te denken over je model.
+De apps die je tot nu toe maakte, werkten met enkel tijdelijke waarden en fields: alles is vergeven en vergeten zodra je de app afsluit. Zo werkt het in het echt natuurlijk niet: de Albert Heijn begint niet met een lege Bonuskaart-database nadat de stroom is uitgevallen. In dit hoofdstuk bewaar je gegevens langer door ze op te slaan in een **database**.
 
-We hebben tot nu toe veel verschillende soorten apps gemaakt, maar tot nu toe werkten die allemaal met enkel tijdelijke waarden en fields: alles is vergeven en vergeten zodra je de app afsluit. Dat is natuurlijk niet hoe het in het echt werkt: de Albert Heijn begint niet met een lege Bonuskaart-database nadat de stroom is uitgevallen.
-
-Er zijn verschillende manieren waarop we gegevens langer kunnen bewaren. Zo kunnen we natuurlijk gegevens wegschrijven naar een bestand, we zouden gegevens kunnen printen, mailen, met wat werk zelfs nog kunnen faxen, maar in dit hoofdstuk gaan we kijken hoe we gegevens kunnen opslaan in een database.
-
-Zoals je wellicht weet, zijn er verschillende typen databases: degene waar jullie tot nu toe mee hebben gewerkt is MySQL, maar misschien heb je ook wel eens gehoord van T-SQL (van Microsoft), Oracle, NoSQL, PostgreSQL… er zijn er te veel om op te noemen. Gelukkig hoef jij dat allemaal niet te weten als je in C# met databases wilt gaan werken, en dat komt door Entity Framework Core. EF Core stelt je in staat om te communiceren met een database, zonder enige kennis van en over die database. Met EF Core kun je gewoon in C# programmeren zoals je gewend bent, en EF Core regelt de rest voor je.
+Er zijn verschillende typen databases: jullie werkten tot nu toe met MySQL, maar je hebt vast ook wel eens gehoord van T-SQL, Oracle, PostgreSQL of NoSQL. Gelukkig hoef je die niet allemaal te kennen om er in C# mee te werken, en dat komt door **Entity Framework Core**. Met EF Core communiceer je met een database zonder enige kennis van die database: je programmeert gewoon in C# zoals je gewend bent, en EF Core regelt de rest.
 
 Wanneer je een app met EF Core gaat maken, volg je steeds de volgende stappen:
 
@@ -34,34 +30,46 @@ Wanneer je een app met EF Core gaat maken, volg je steeds de volgende stappen:
 8. Voer de migratie uit op je database;
 9. Vul je database met eerste gegevens.
 
-## 3.2 Migrations
+## 3.2 ORM
 
-Misschien herken je de term 'migration' van WEB, waar je met migrations in Laravel hebt gewerkt. In C# zijn migrations ongeveer hetzelfde, alleen doet C# een aantal zaken voor jou, die je bij Laravel zelf moet regelen. Voor de duidelijkheid: wat is een migration? Een migration is een manier om bij veranderingen in je app je database up-to-date te houden. Oké, leuk, maar wat bedoelen we daarmee? Waarom is dat belangrijk?
+Je hebt net gelezen dat je met EF Core in C# kunt programmeren, zonder dat je zelf SQL hoeft te schrijven. Dat komt omdat EF Core een **ORM** is: een Object-Relational Mapper.
 
-Stel, jij heet Albert H. en je hebt een winkeltje waar je levensmiddelen verkoopt. Op een dag komt iemand op het idee om vaste klanten korting te geven: vaste klanten kunnen een Boguskaart aanvragen, en op vertoon van die kaart krijgen ze extra aanbiedingen op bepaalde producten. Je kaart is een enorm succes en je bedenkt dat je nóg meer geld kunt verdienen als je meer van je vaste klanten weet. Vanaf nu moeten mensen dus hun naam opgeven als ze een Boguskaart ophalen. Iets later bedenk je dat het handig zou zijn als je bijhoudt welke producten je vaste klanten kopen, welke aanbiedingen wel werken en welke niet. En nog iets later bedenk je dat je misschien ook wel bij wilt houden hoe laat een klant vaak winkelt, en het gemiddelde bestedingsbedrag en per klant het bestedingspercentiel en de haarkleur en schoenmaat, en, en, en…
+Een database bestaat uit tabellen met rijen en kolommen (relationeel), terwijl je in C# met classes en objecten werkt (objectgeoriënteerd). Die twee "werelden" spreken normaal gesproken niet dezelfde taal: een database begrijpt alleen SQL, en C# begrijpt alleen C#-code. Een ORM vormt de brug tussen deze twee werelden: het vertaalt jouw classes en objecten automatisch naar tabellen en rijen (en andersom), zodat jij gewoon in C# kunt blijven programmeren en de ORM de vertaling naar SQL voor je verzorgt.
 
-Al deze wensen vereisen aanpassingen aan je app (want ineens moet er een field "naam" in je app komen, zodat je de klantnaam in kunt voeren), én in je database, zodat de ingevoerde naam ook daadwerkelijk wordt opgeslagen. Maar dat kan soms best lastig zijn: als je de app aanpast voordat je de database aanpast krijg je foutmeldingen ("kolom niet gevonden"), maar als je de database aanpast voordat je de app aanpast, krijg je lege cellen, wat óók een foutmelding op kan leveren. De oplossing voor al deze problemen zijn *migraties*. Een migratie is een soort 'patch' voor je database en zorgt ervoor dat je database in precies de goede vorm is, voor díe versie van je app. Als je een nieuwe versie van je app uitrolt, maak je een migration voor die versie, en die zorgt ervoor dat de database waarmee je praat up-to-date is met de app die je draait. Dit is met name handig in OTAP-omgevingen, waar je op je ontwikkelomgeving (O) misschien een andere versie draait dan op de testomgeving (T), waar weer een andere versie op draait dan op je acceptatieomgeving (A), wat weer een andere versie is dan de versie die in productie (P) draait.
+Stel je hebt een class `ToDo` in je app (zo'n model bouw je in 3.4). Wanneer je een nieuw `ToDo`-object aanmaakt en opslaat, genereert EF Core zelf de bijbehorende SQL-code om een nieuwe rij toe te voegen aan de `ToDo`-tabel. Wil je alle taken ophalen? Dan schrijf je gewoon C#-code, en EF Core vertaalt dit op de achtergrond naar een `SELECT`-query.
+
+Het grote voordeel van werken met een ORM zoals EF Core is dus dat je vrijwel geen handmatig SQL meer hoeft te schrijven: je blijft gewoon in C# programmeren, en EF Core regelt de communicatie met de database. Dit maakt je code overzichtelijker, minder foutgevoelig, en makkelijker te onderhouden. Daarnaast zorgt EF Core er via migrations (zie 3.6) automatisch voor dat de structuur van je database in de pas blijft lopen met je C#-classes.
+
+<x-keuzevraag>
+question: Wat is de belangrijkste taak van een ORM zoals EF Core?
+options:
+  - Je database sneller maken
+  - Je C#-classes en -objecten vertalen naar tabellen en rijen (en andersom)
+  - Je code compileren
+  - Automatisch een gebruikersinterface bouwen
+correct: 1
+explanation: Een ORM is de brug tussen de objectgeoriënteerde wereld van C# en de relationele wereld van de database.
+</x-keuzevraag>
 
 ## 3.3 Packages
 
-Om gebruik te maken van EF Core moet je de volgende packages installeren:
+Om gebruik te maken van EF Core installeer je de volgende packages:
 
-- `Pomelo.EntityFrameworkCore.MySQL`
+- `Microsoft.EntityFrameworkCore`
 - `Microsoft.EntityFrameworkCore.Tools`
+- `Pomelo.EntityFrameworkCore.MySql`
 
 <x-callout type="warning">
 
-**Let op:** installeer de laatste minor versie die overeenkomt met de gekozen .NET-versie. Dus bij .NET 8.0 kies je de hoogste versie die begint met `8.*`.
+**Let op:** alle EF Core-packages moeten exact dezelfde versie hebben, anders werkt het niet. De nieuwste versie van `Pomelo.EntityFrameworkCore.MySql` is een 9-versie (`9.*`), dus installeer van álle packages hierboven de nieuwste `9.*`-versie.
 
 </x-callout>
 
 ![Het versie-dropdownmenu van een NuGet-package met onder andere 9.0.0, 8.0.3, 8.0.2, 8.0.1, 8.0.0 en 7.0.0](./assets/nuget-versie-dropdown.png)
 
-Zowel Microsoft als Pomelo houden de conventie aan om versies van hun packages met dezelfde Major versie te laten beginnen, zo is het makkelijk te vinden welke versies met elkaar 'compatibel' zijn.
+Zowel Microsoft als Pomelo houden de conventie aan om bij elkaar horende packageversies met hetzelfde Major-versienummer te laten beginnen. Zo is makkelijk te zien welke versies met elkaar 'compatibel' zijn — en houd je ze dus allemaal op dezelfde versie.
 
 ## 3.4 Een EF Core-model maken
-
-### Simpel model
 
 Stel, je wilt een eenvoudige "ToDo"-app maken, waarin jij je eigen taken en huiswerk bij kunt houden… Welke gegevens moet je dan allemaal in een database opslaan? Nou… een "taak" heeft waarschijnlijk een titel, misschien een uitgebreide beschrijving, een deadline, en een field "voldaan"… Dus als je in C# een class `ToDo` zou gaan maken, zou dat er waarschijnlijk zo uitzien:
 
@@ -83,27 +91,6 @@ En daar is je model. EF Core haalt (bij het maken van een migratie) uit je class
 Maak in je model **properties** (`int Id { get; set; }`), géén fields (`int Id;`). EF Core werkt met properties.
 
 </x-callout>
-
-### ORM
-
-Je hebt in dit hoofdstuk al gezien dat je met EF Core in C# kunt programmeren, zonder dat je zelf SQL hoeft te schrijven. Dat komt omdat EF Core een **ORM** is: een Object-Relational Mapper.
-
-Een database bestaat uit tabellen met rijen en kolommen (relationeel), terwijl je in C# met classes en objecten werkt (objectgeoriënteerd). Die twee "werelden" spreken normaal gesproken niet dezelfde taal: een database begrijpt alleen SQL, en C# begrijpt alleen C#-code. Een ORM vormt de brug tussen deze twee werelden: het vertaalt jouw classes en objecten automatisch naar tabellen en rijen (en andersom), zodat jij gewoon in C# kunt blijven programmeren en de ORM de vertaling naar SQL voor je verzorgt.
-
-Denk bijvoorbeeld terug aan de class `ToDo` die we hierboven hebben gemaakt. Wanneer je een nieuw `ToDo`-object aanmaakt en opslaat, genereert EF Core zelf de bijbehorende SQL-code om een nieuwe rij toe te voegen aan de `ToDo`-tabel. Wil je alle taken ophalen? Dan schrijf je gewoon C#-code, en EF Core vertaalt dit op de achtergrond naar een `SELECT`-query.
-
-Het grote voordeel van werken met een ORM zoals EF Core is dus dat je vrijwel geen handmatig SQL meer hoeft te schrijven: je blijft gewoon in C# programmeren, en EF Core regelt de communicatie met de database. Dit maakt je code overzichtelijker, minder foutgevoelig, en makkelijker te onderhouden. Daarnaast zorgt EF Core er via migrations (zie 3.2) automatisch voor dat de structuur van je database in de pas blijft lopen met je C#-classes.
-
-<x-keuzevraag>
-question: Wat is de belangrijkste taak van een ORM zoals EF Core?
-options:
-  - Je database sneller maken
-  - Je C#-classes en -objecten vertalen naar tabellen en rijen (en andersom)
-  - Je code compileren
-  - Automatisch een gebruikersinterface bouwen
-correct: 1
-explanation: Een ORM is de brug tussen de objectgeoriënteerde wereld van C# en de relationele wereld van de database.
-</x-keuzevraag>
 
 ## 3.5 Verbinding met de database
 
@@ -151,48 +138,29 @@ blanks:
 explanation: "Het type tussen < > is de class die je opslaat; de property-naam is meestal het meervoud."
 </x-invul>
 
-## 3.6 Stappenplan: een nieuwe C#-app met EF Core starten (MySQL)
+## 3.6 Migrations
 
-1. Start Visual Studio, kies voor 'Create a new project';
-2. Kies het type app (Console, WPF, UWP, etc.) dat je wilt maken en druk op 'Next';
-3. Geef je app een toepasselijke naam, selecteer de map waar je het project wilt opslaan en druk op 'Next';
-4. Druk op 'Next';
-5. Rechtsklik op je project in de Solution Explorer en kies voor 'Manage NuGet Packages':
+Misschien herken je de term 'migration' van WEB (Laravel). In C# werkt het ongeveer hetzelfde, alleen genereert EF Core de migratie voor je. Een migration houdt je database up-to-date bij veranderingen in je app.
 
-    ![Rechtsklikmenu in de Solution Explorer van Visual Studio met 'Manage NuGet Packages...' geselecteerd](./assets/solution-explorer-nuget.png)
+Je app en je database moeten namelijk altijd bij elkaar passen. Voeg je een property `Naam` toe aan een class, dan moet er ook een kolom `Naam` in de tabel komen — anders krijg je foutmeldingen. Een migration is een soort 'patch' voor je database: het beschrijft precies welke wijzigingen nodig zijn om de database in de goede vorm te brengen voor díe versie van je app. Bij elke nieuwe versie maak je een migration, en die zorgt dat de database meeloopt met de code. Handig in OTAP-omgevingen, waar ontwikkel (O), test (T), acceptatie (A) en productie (P) elk een andere versie kunnen draaien.
 
-6. Ga naar het tabblad 'Browse' en zoek en installeer de volgende packages:
-   1. `Microsoft.EntityFrameworkCore.Design`
-   2. `Microsoft.EntityFrameworkCore.Tools`
-   3. `Pomelo.EntityFrameworkCore.MySql`
-7. Rechtsklik op je project in de Solution Explorer en voeg de volgende mappen toe:
-   1. `Model`;
-   2. `View`;
-   3. `Controller`;
-   4. `Data`.
-8. Maak in de `Data`-folder een context-class aan: als je app `FamilyPhotos` heet, noem je deze class `FamilyPhotosContext`;
-9. Wanneer je die nog niet hebt, maak je een nieuwe MySQL-database aan;
-10. Wanneer je dat nog niet hebt, maak je een nieuwe MySQL-gebruiker aan:
-    1. User name: `c_sharp`
-    2. Host name: any host (`%`)
-    3. Wachtwoord: `c_sharp`
-    4. Alle privileges ("Check all").
-11. Kopieer de `OnConfiguring`-code hierboven naar je datacontext en pas de gebruiker en het wachtwoord aan (indien nodig);
-12. Maak nu je model aan: maak classes voor alle objecten die je in je app wilt gebruiken en definieer alle eigenschappen die je wilt opslaan. **LET OP:** maak hier properties (`int thisInt { get; set; }`) van, géén fields.
-13. Voeg in je datacontext voor iedere class die je wilt opslaan in je database de volgende regel toe (pas `Car` en `Cars` uiteraard aan naar de juiste class en een logische naam):
+### Een migratie maken
 
-    ```csharp
-    public DbSet<Car> Cars { get; set; }
-    ```
+Migraties maak je via de **Package Manager Console** (in Visual Studio: *Tools → NuGet Package Manager → Package Manager Console*). Je typt twee commando's:
 
-14. Ga naar Tools > NuGet Package Manager > Package Manager Console;
-15. Maak een nieuwe migratie door te typen: `Add-Migration <Name>` met een passende naam voor `<Name>`;
-16. Pas je migratie toe met de methode `Update-Database`;
-17. Controleer je database: als het goed is, is er nu voor iedere class in je datacontext een tabel aangemaakt met een kolom voor iedere property in die class.
+```powershell
+Add-Migration InitieleDatabase
+Update-Database
+```
+
+![Package Manager Console: de opdracht 'Add-Migration InitieleDatabase' gevolgd door 'Build succeeded.', en daarna 'Update-Database' met de melding 'Applying migration 20260907_InitieleDatabase.' en 'Done.'](./assets/add-migration-console.svg)
+
+`Add-Migration <Naam>` laat EF Core je model vergelijken met de vorige migratie en schrijft het verschil weg als een nieuw migratiebestand in je project. `<Naam>` is een korte, beschrijvende naam die jij kiest (bijvoorbeeld `InitieleDatabase` of `KolomNaamToegevoegd`), zodat je later terug kunt zien wat elke migratie deed. Op dit moment is er nog **niets** aan je database veranderd — je hebt alleen een instructie klaargezet.
+
+`Update-Database` voert de migratie(s) die nog niet zijn toegepast daadwerkelijk uit op je database: EF Core vertaalt het migratiebestand naar SQL (`CREATE TABLE`, `ALTER TABLE`…) en draait dat tegen de database. Pas na deze stap staan je tabellen en kolommen er echt. Je moet `Update-Database` dus altijd draaien nadat je een migratie hebt gemaakt — anders loopt je database achter op je code.
 
 <x-nav label="Klaar met de theorie?">
 [Oefeningen](/pages/week3-oefeningen.html)
 [Quiz](/pages/week3-meetmoment.html)
-[Inleveropdracht](/pages/week3-inleveropdracht.html)
 [Week 4](/pages/week4-theorie.html)
 </x-nav>

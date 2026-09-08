@@ -1,78 +1,78 @@
 ---
 week: 5
-title: Quiz Week 5 — API concept & consumeren
+title: Quiz Week 5 — CRUD in een WinUI-app
 passScore: 70
 questions:
   - id: w5q1
-    question: Waar staat API voor?
+    question: Wat doet <code>db.Database.EnsureCreated()</code>?
     options:
-      - Advanced Programming Instruction
-      - Application Programming Interface
-      - Automatic Page Indexer
-      - Application Process Integration
+      - Het maakt een migratiebestand aan
+      - Het bouwt de database op volgens je model als die nog niet bestaat, en roept daarna de seeding aan
+      - Het verwijdert alle rijen uit je tabellen
+      - Het opent een verbinding zonder iets aan te maken
     correct: 1
-    explanation: Een API is een set afspraken waarmee softwaresystemen met elkaar communiceren.
+    explanation: EnsureCreated maakt de database + tabellen aan volgens je model (als die er nog niet zijn) en roept OnModelCreating aan voor de seed-data.
   - id: w5q2
-    question: Wie is in een API-gesprek meestal de client?
+    question: Wat is het risico van <code>db.Database.EnsureDeleted()</code> in je MainWindow-constructor?
     options:
-      - De database
-      - De applicatie die de API aanroept
-      - De server waarop de API draait
-      - De programmeur
+      - De app start langzamer op
+      - Bij elke start wordt de hele database gewist, dus toegevoegde of gewijzigde data verdwijnt
+      - De verbinding wordt nooit gesloten
+      - Migrations werken daarna niet meer
     correct: 1
-    explanation: De client roept aan; de server draait de API.
+    explanation: EnsureDeleted gooit elke keer de database weg. Prima met alleen seed-data, maar zodra je CRUD-wijzigingen wilt bewaren haal je die regel weg.
   - id: w5q3
-    question: Wat krijg je meestal terug van een REST API in plaats van HTML/CSS?
+    question: Wat gebeurt er nadat <code>EnsureCreated()</code> de database heeft opgebouwd?
     options:
-      - JSON (of XML)
-      - Een afbeelding
-      - Een SQL-bestand
-      - Een zip
-    correct: 0
-    explanation: Vrijwel elke taal kan JSON omzetten naar objecten in code.
+      - Er gebeurt niets meer; de database is klaar
+      - OnModelCreating wordt aangeroepen, dus je seed-data (HasData) wordt toegevoegd
+      - Er wordt automatisch een migratie gemaakt
+      - De ListView wordt gevuld
+    correct: 1
+    explanation: EnsureCreated bouwt de database volgens je model en roept daarna OnModelCreating aan; daar staat je HasData-seeding, dus die testdata komt meteen in de database.
   - id: w5q4
-    question: "Wat doet het endpoint `GET /surveys/123`?"
+    question: Waarvoor gebruik je <code>HasData</code> in <code>OnModelCreating</code>?
     options:
-      - Voegt enquête 123 toe
-      - Verwijdert enquête 123
-      - Geeft de enquête met id 123 terug
-      - Geeft alle enquêtes terug
-    correct: 2
-    explanation: GET met een id in de route haalt dat ene item op.
+      - Om de databaseverbinding op te zetten
+      - Om testgegevens (seed-data) aan de database mee te geven
+      - Om een ListView te vullen
+      - Om een migratie uit te voeren
+    correct: 1
+    explanation: Met modelBuilder.Entity<T>().HasData(...) geef je vaste beginrijen op; die worden bij EnsureCreated in de database gezet.
   - id: w5q5
-    question: Waarom moet je Main asynchroon maken (`async Task Main`) als je HttpClient gebruikt?
+    question: "Je vult je ListView zo: <code>citizenListView.ItemsSource = db.Citizens;</code> binnen een using-blok. Wat gaat er mis?"
     options:
-      - Omdat HttpClient alleen in Main werkt
-      - Omdat GetAsync en ReadAsStringAsync asynchroon zijn en je op hun resultaat wacht met await
-      - Omdat een console-app anders niet start
-      - Dat hoeft niet
+      - Niets, dit is correct
+      - De lijst leest later data uit een DbContext die dan al is afgesloten — gebruik .ToList()
+      - Je moet ItemSource schrijven, niet ItemsSource
+      - Een DbSet kan nooit in een ListView
     correct: 1
-    explanation: Een webverzoek kan lang duren; daarom zijn die methoden async en moet de omliggende methode dat ook zijn.
+    explanation: Zonder .ToList() haalt de ListView de gegevens pas op als hij ze nodig heeft; de context uit het using-blok is dan al gesloten. Met db.Citizens.ToList() haal je alles meteen op.
   - id: w5q6
-    question: Wat is deserialiseren?
+    question: "In de ItemClick-handler doe je <code>Citizen c = (Citizen)e.ClickedItem;</code>. Waarom mag dat?"
     options:
-      - Van een object naar tekst
-      - Van tekst naar een object
-      - Een object verwijderen
-      - Een object kopiëren
+      - Omdat e.ClickedItem altijd een Citizen is
+      - Omdat wij de ListView met Citizen-objecten hebben gevuld, dus het geklikte item is er één
+      - Omdat casten nooit fout gaat
+      - Omdat ClickedItem al van het type Citizen is
     correct: 1
-    explanation: Deserialiseren = tekst (JSON) omzetten naar een C#-object. Serialiseren is andersom.
+    explanation: "e.ClickedItem is van het type object. Omdat jouw ItemsSource een lijst Citizen was, is het geklikte item met zekerheid een Citizen."
   - id: w5q7
-    question: "In de JSON staat `\"name\"` (kleine letter), in C# heet je property `Name`. Wat heb je nodig?"
+    question: Welke twee regels voegen een nieuwe bewoner echt toe aan de database?
     options:
-      - "JsonSerializerOptions met PropertyNameCaseInsensitive = true"
-      - Je property hernoemen naar name
-      - Niets, het werkt vanzelf
-      - Een tweede class
+      - "db.Citizens.Add(nieuw); db.SaveChanges();"
+      - "db.Citizens.Add(nieuw);"
+      - "db.Citizens.Find(nieuw); db.SaveChanges();"
+      - "citizenListView.Items.Add(nieuw);"
     correct: 0
-    explanation: Met die optie matcht de serializer hoofdletterongevoelig.
+    explanation: Add zet het object klaar in de context; pas SaveChanges schrijft het echt naar de database. Items aan de ListView toevoegen verandert de database niet.
   - id: w5q8
-    question: "Welk C#-type gebruik je voor een JSON-array `\"hobbies\": [\"a\", \"b\"]`?"
+    question: Je klikt op een bewoner en wilt zijn beroep wijzigen. Wat is de juiste volgorde?
     options:
-      - "string"
-      - "List<string> (of string[])"
-      - "int"
-      - Een aparte class Hobbies
+      - Nieuwe Citizen maken met hetzelfde Id en SaveChanges
+      - Bewoner ophalen met Find, de property aanpassen, SaveChanges
+      - De property aanpassen in de ListView en SaveChanges
+      - Remove en daarna Add
     correct: 1
-    explanation: Een JSON-array van strings deserialiseer je naar een lijst of array van string.
+    explanation: Haal het bestaande object op met db.Citizens.Find(id), wijzig de property en roep SaveChanges aan — Change Tracking (week 4) herkent de wijziging en maakt de UPDATE.
 ---

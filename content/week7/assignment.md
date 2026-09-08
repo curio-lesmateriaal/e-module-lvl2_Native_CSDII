@@ -1,47 +1,42 @@
 ---
 week: 7
-title: De Sleutel — API op de database met validatie
-subtitle: Inleveropdracht Week 7 (eindopdracht-basis)
+title: De Sleutel — de eerste eigen API
+subtitle: Inleveropdracht Week 7
 client: Autoverhuur De Sleutel
-maxPoints: 16
+maxPoints: 13
 deliverables:
-  - Een API (HttpListener-console-app) die zijn data uit de database haalt via EF Core
-  - GET-routes voor de lijst en voor één item, en een POST-route om toe te voegen
-  - Validatie op de POST-invoer (if-statements of Data Annotations) met een [RegularExpression] op minstens één veld
-  - Screenshots van de routes (browser of Thunder Client / Postman), inclusief een geweigerde invoer
+  - Een console-app die met HttpListener op een poort luistert
+  - Minstens drie routes die JSON teruggeven
+  - Screenshot van de routes in de browser (of in een tool zoals Postman / Thunder Client)
 criteria:
   - id: w7h1
-    text: "GET /voertuigen haalt de lijst op via de DbContext (db.Voertuigen.ToList())"
+    text: De server start met HttpListener op een ingestelde poort en blijft draaien (lus rond GetContext)
     points: 3
   - id: w7h2
-    text: "GET /voertuigen/{id} haalt één voertuig uit de database; onbekend id geeft 404"
+    text: Er is een route GET /voertuigen die een JSON-lijst teruggeeft
     points: 3
   - id: w7h3
-    text: "POST /voertuigen leest de body via InputStream, deserialiseert de JSON en slaat op met SaveChanges"
+    text: Er is een route GET /voertuigen/{id} die één voertuig teruggeeft (id uit de URL gehaald)
     points: 3
   - id: w7h4
-    text: De POST-invoer wordt gevalideerd; ongeldige invoer wordt geweigerd met een duidelijke JSON-foutmelding en status 400
-    points: 3
-  - id: w7h5
-    text: Minstens één veld heeft een [RegularExpression] (bijv. kenteken of postcode) met een eigen ErrorMessage
+    text: Onbekende routes geven een net antwoord (bijv. status 404 of een JSON-foutmelding)
     points: 2
-  - id: w7h6
-    text: Alle antwoorden zijn geldige JSON met Content-Type application/json
+  - id: w7h5
+    text: Het antwoord wordt correct omgezet naar bytes, ContentLength64 gezet en de OutputStream gesloten
     points: 1
-  - id: w7h7
-    text: De code is opgedeeld in methoden/routes; geen copy-paste van de verzendlogica
+  - id: w7h6
+    text: De Content-Type van het antwoord staat op application/json
     points: 1
 tips:
-  - Hergebruik je StuurJson-helper uit week 6 voor alle antwoorden, ook de foutmeldingen.
-  - Test de POST met Thunder Client (VS Code) of Postman — een browser kan alleen GET.
-  - Begin met de GET-routes werkend op de database, voeg daarna pas POST + validatie toe.
-  - Dit project is de basis voor je eindopdracht in de bufferweken — bouw het netjes op.
+  - Voor nu mag je de voertuigenlijst nog hardcoderen (bijv. een `List<Voertuig>` in het geheugen). In week 8 koppel je EF Core.
+  - Gebruik `JsonSerializer.Serialize(lijst)` om je objecten naar JSON-tekst om te zetten.
+  - Zet een `while (true)`-lus om `listener.GetContext()` zodat de server meerdere verzoeken kan afhandelen.
 ---
 
-Alle losse onderdelen komen nu samen. De Sleutel wil één API die door alle toekomstige apps gebruikt kan worden: de balie-app, een klantwebsite en later misschien een mobiele app. Die API praat met de database en bewaakt dat er geen onzin in komt.
+De Sleutel wil dat straks meerdere apps (de balie, een klantwebsite, misschien een mobiele app) dezelfde gegevens kunnen gebruiken. Daarvoor bouw je nu zelf een kleine API-server: een console-app die op een poort luistert en op verzoeken antwoordt met JSON.
 
-Bouw voort op je API van week 6. Vervang de hardcoded lijst door echte databasegegevens: `GET /voertuigen` en `GET /voertuigen/{id}` halen hun data op via de `DeSleutelContext`. Voeg een `POST /voertuigen` toe die de request-body uitleest via de `InputStream`, de JSON deserialiseert naar een `Voertuig`, de gegevens **valideert** (kies if-statements óf Data Annotations) en bij goedkeuring opslaat met `SaveChanges`. Zet op minstens één veld een `[RegularExpression]` — bijvoorbeeld een kenteken-formaat of een postcode. Weiger ongeldige invoer met status 400 en een JSON-foutmelding die vertelt wat er mis is.
+Bouw met `HttpListener` een webserver die luistert op bijvoorbeeld `http://localhost:8080/`. Handel minstens drie routes af: `GET /voertuigen` (alle voertuigen als JSON-lijst), `GET /voertuigen/{id}` (één voertuig, waarbij je het id uit `request.Url.Segments` of `AbsolutePath` haalt), en een nette afhandeling voor onbekende routes. De voertuigenlijst mag je voor nu nog hardcoderen. Zet je antwoord om naar bytes, stel `ContentLength64` en de `Content-Type` (`application/json`) in en sluit de `OutputStream`.
 
 ## Inleveren
 
-Lever je project (als `.zip`, zonder `bin/` en `obj/`) met de screenshots in via **Itslearning**, onder de map "Module: Native (C#)". Dit project vormt de basis voor je eindopdracht in de buffer- en toetsweken.
+Lever je project (als `.zip`, zonder `bin/` en `obj/`) met de screenshots in via **Itslearning**, onder de map "Module: Native (C#)".

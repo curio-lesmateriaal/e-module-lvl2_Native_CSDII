@@ -280,6 +280,5 @@ explanation: Op regel 3 vervang je de lokale parameter door een nieuw object. De
 <x-nav label="Klaar met de theorie?">
 [Oefeningen](/pages/week1-oefeningen.html)
 [Quiz](/pages/week1-meetmoment.html)
-[Inleveropdracht](/pages/week1-inleveropdracht.html)
 [Week 2](/pages/week2-theorie.html)
 </x-nav>

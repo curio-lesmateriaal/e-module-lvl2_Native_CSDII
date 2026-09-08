@@ -117,6 +117,5 @@ explanation: "Zo houd je controle: de class bepaalt zelf hoe en wanneer de snelh
 <x-nav label="Klaar met de theorie?">
 [Oefeningen](/pages/week2-oefeningen.html)
 [Quiz](/pages/week2-meetmoment.html)
-[Inleveropdracht](/pages/week2-inleveropdracht.html)
 [Week 3](/pages/week3-theorie.html)
 </x-nav>

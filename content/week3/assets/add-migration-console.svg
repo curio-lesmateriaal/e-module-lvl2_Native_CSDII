@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="356" viewBox="0 0 780 356" font-family="Consolas, 'Courier New', monospace" font-size="15">
+  <rect x="0" y="0" width="780" height="356" rx="6" fill="#1e1e1e"/>
+  <rect x="0" y="0" width="780" height="30" rx="6" fill="#2d2d2d"/>
+  <rect x="0" y="18" width="780" height="12" fill="#2d2d2d"/>
+  <text x="14" y="20" fill="#cccccc" font-size="13">Package Manager Console</text>
+
+  <!-- Add-Migration -->
+  <text x="14" y="60"><tspan fill="#569cd6">PM&gt;</tspan><tspan fill="#d4d4d4" xml:space="preserve"> Add-Migration </tspan><tspan fill="#9cdcfe">InitieleDatabase</tspan></text>
+  <text x="14" y="86" fill="#808080">Build started...</text>
+  <text x="14" y="112" fill="#808080">Build succeeded.</text>
+  <text x="14" y="138" fill="#808080">To undo this action, use Remove-Migration.</text>
+
+  <!-- Update-Database -->
+  <text x="14" y="190"><tspan fill="#569cd6">PM&gt;</tspan><tspan fill="#d4d4d4" xml:space="preserve"> Update-Database</tspan></text>
+  <text x="14" y="216" fill="#808080">Build started...</text>
+  <text x="14" y="242" fill="#808080">Build succeeded.</text>
+  <text x="14" y="268" fill="#d4d4d4">Applying migration '20260907_InitieleDatabase'.</text>
+  <text x="14" y="294" fill="#4ec9b0">Done.</text>
+
+  <text x="14" y="330"><tspan fill="#569cd6">PM&gt;</tspan><tspan fill="#d4d4d4"> </tspan><tspan fill="#d4d4d4" opacity="0.9">&#9611;</tspan></text>
+</svg>

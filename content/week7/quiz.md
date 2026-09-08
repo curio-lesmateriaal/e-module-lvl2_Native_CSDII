@@ -1,78 +1,78 @@
 ---
 week: 7
-title: Quiz Week 7 — API + EF Core & validatie
+title: Quiz Week 7 — API zelf bouwen
 passScore: 70
 questions:
   - id: w7q1
-    question: Hoe geeft je API in week 7 de voertuigenlijst terug?
+    question: Uit welke drie lagen bestaat een webapp meestal?
     options:
-      - Uit de database via de DbContext (bijv. db.Voertuigen.ToList())
-      - Vanuit een hardcoded List in je code
-      - Uit een tekstbestand
-      - Rechtstreeks vanuit de browser
+      - Database, backend, front-end
+      - HTML, CSS, JavaScript
+      - Client, router, switch
+      - Model, view, controller
     correct: 0
-    explanation: "De API is de brug: hij haalt de data met EF Core uit de database en serveert die als JSON."
+    explanation: Database (gegevens), backend (het brein), front-end (wat de gebruiker ziet).
   - id: w7q2
-    question: Waar lees je de inhoud (body) van een POST-verzoek uit?
+    question: Waar draait de backend-code van een webapp?
     options:
-      - "context.Response.OutputStream"
-      - "context.Request.Url"
-      - "context.Response.ContentLength64"
-      - "context.Request.InputStream"
-    correct: 3
-    explanation: De verzonden gegevens komen binnen via de InputStream van de Request.
-  - id: w7q3
-    question: Wat is validatie?
-    options:
-      - Het controleren of invoer aan de voorwaarden voldoet
-      - Het versleutelen van gegevens
-      - Het opslaan van gegevens
-      - Het omzetten van JSON naar objecten
-    correct: 0
-    explanation: Validatie controleert of de door de gebruiker aangeleverde gegevens bruikbaar en correct zijn.
-  - id: w7q4
-    question: Welke package bevat de attributen [Required], [MaxLength] en [Range]?
-    options:
-      - "System.Text.Json"
-      - "Microsoft.EntityFrameworkCore"
-      - "System.ComponentModel.DataAnnotations"
-      - "System.Net"
+      - In de browser
+      - In de database
+      - Op de server
+      - Op de computer van de gebruiker
     correct: 2
-    explanation: Data Annotations zitten in System.ComponentModel.DataAnnotations.
-  - id: w7q5
-    question: Welke methode voert de validatie op basis van Data Annotations uit?
+    explanation: Alleen de front-end (HTML/CSS of JSON) komt bij de gebruiker terecht.
+  - id: w7q3
+    question: Wat betekent het dat HTTP 'stateless' is?
     options:
-      - "Validator.TryValidateObject"
-      - "JsonSerializer.Deserialize"
-      - "context.SaveChanges"
-      - "Regex.IsMatch"
-    correct: 0
-    explanation: TryValidateObject vult een lijst met ValidationResults en geeft true/false terug.
-  - id: w7q6
-    question: "Je schrijft `[Required]` in plaats van `[RequiredAttribute]`. Klopt dat?"
-    options:
-      - Nee, de volledige naam is verplicht
-      - Alleen bij [Range]
-      - Alleen in een console-app
-      - Ja, bij attribute-classes mag je de 'Attribute'-suffix weglaten
+      - Er is geen internetverbinding nodig
+      - Er kan maar één gebruiker tegelijk zijn
+      - De server slaat niets op in de database
+      - De server onthoudt tussen twee requests niet dat jij dezelfde persoon bent
     correct: 3
-    explanation: Beide schrijfwijzen zijn geldig voor C#-attributes.
+    explanation: Elke request staat op zichzelf; technieken die wél onthouden wie je bent heten stateful.
+  - id: w7q4
+    question: Welke class gebruik je in C# om een eenvoudige webserver te bouwen?
+    options:
+      - HttpListener
+      - HttpClient
+      - WebBrowser
+      - TcpClient
+    correct: 0
+    explanation: HttpClient consumeert API's; HttpListener luistert naar binnenkomende verzoeken.
+  - id: w7q5
+    question: Wat doet listener.GetContext()?
+    options:
+      - Start de server
+      - Stuurt het antwoord
+      - Wacht tot er een verzoek binnenkomt
+      - Sluit de verbinding
+    correct: 2
+    explanation: De methode blokkeert tot er een HTTP-verzoek binnenkomt, net als Console.ReadLine().
+  - id: w7q6
+    question: Waarom zet je je antwoordtekst om naar bytes voordat je het verstuurt?
+    options:
+      - Bytes zijn kleiner
+      - Anders wordt het versleuteld
+      - Dat hoeft niet
+      - Een Stream verstuurt byte-voor-byte; tekst kun je niet zomaar sturen
+    correct: 3
+    explanation: "`Encoding.UTF8.GetBytes(...)` zet de string om; de ontvanger bouwt hem weer op met GetString."
   - id: w7q7
-    question: "Wat matcht de regex `^[0-9]{4}[A-Z]{2}$`?"
+    question: "Wat is `request.Url.AbsolutePath` bij een bezoek aan `http://localhost:8080/test`?"
     options:
-      - "1234ab"
-      - "1234AB"
-      - "12 34AB"
-      - "AB1234"
+      - "http://localhost:8080/test"
+      - "/test"
+      - "test"
+      - "localhost:8080"
     correct: 1
-    explanation: 4 cijfers, dan 2 hoofdletters, niets ervoor of erna — precies het postcodeformaat 1234AB.
+    explanation: AbsolutePath is alleen het pad-gedeelte van de URL.
   - id: w7q8
-    question: "Wat betekent `\\s?` in de regex `^[0-9]{4}\\s?[A-Z]{2}$`?"
+    question: "Wat zit er in `request.Url.Segments` bij `http://localhost:8080/user/1`?"
     options:
-      - Precies één spatie is verplicht
-      - Een witruimte-teken is op die plek optioneel
-      - Er mogen alleen letters staan
-      - Het is het einde van de string
-    correct: 1
-    explanation: "`\\s` is witruimte, `?` maakt het optioneel — zo mag de postcode mét of zónder spatie."
+      - "Alleen ['user', '1']"
+      - "['localhost', 'user', '1']"
+      - "['/', '/user/', '1']"
+      - "['user/1']"
+    correct: 2
+    explanation: Segments splitst het pad inclusief de slashes; het laatste segment ('1') gebruik je vaak als id.
 ---

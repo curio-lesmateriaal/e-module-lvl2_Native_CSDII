@@ -1,309 +1,191 @@
 ---
 week: 7
-title: API + EF Core — data serveren & valideren
-goal: je kunt je zelfgebouwde API de echte databasegegevens laten teruggeven via EF Core en je kunt binnenkomende gegevens valideren met if-statements en Data Annotations
-accent: slate
-summary: "De laatste stap: je API haalt geen hardcoded lijst meer op maar echte data uit de database via de DbContext. Daarnaast leer je invoer valideren — met simpele if-statements, met Data Annotations en met reguliere expressies."
+title: API — zelf bouwen
+goal: je kunt een eenvoudige webserver in C# bouwen met HttpListener, HTTP-verzoeken beantwoorden met JSON en verschillende routes afhandelen
+accent: rose
+summary: Herhaling van front-end/back-end en de request/response-cyclus, en dan zelf een webserver bouwen met System.Net.HttpListener — verzoeken ontvangen, een antwoord in bytes wegschrijven en routes herkennen.
 leeruitkomsten:
-  - Ik kan in een API-endpoint gegevens ophalen uit de database met EF Core
-  - Ik kan een POST-verzoek uitlezen, de JSON deserialiseren en opslaan met SaveChanges
-  - Ik kan invoer valideren met if-statements
-  - Ik kan invoer valideren met Data Annotations en Validator.TryValidateObject
-  - Ik kan een [RegularExpression] schrijven en een eenvoudige regex lezen
+  - Ik kan de drie lagen van een webapp benoemen en uitleggen
+  - Ik kan de request/response-cyclus uitleggen en weet dat HTTP stateless is
+  - Ik kan met HttpListener een webserver starten en op een poort luisteren
+  - Ik kan een tekstantwoord omzetten naar bytes en wegschrijven naar de OutputStream
+  - Ik kan met AbsolutePath of Segments verschillende routes afhandelen
 ---
 
-## API-data aanleveren vanuit EF Core
+## 4.8 Een API bouwen
 
-Met de 'Read' in 'CRUD' zijn we inmiddels goed bekend: we weten dat we in Entity Framework gegevens kunnen ophalen via een `DbSet` in een Database Context. In week 6 gaf je API nog een hardcoded lijst terug. Nu vervangen we die door echte databasegegevens.
+Om een API te kunnen aanbieden moeten we een webserver opzetten. Die gaat op verzoeken reageren met JSON-antwoorden.
 
-In je route-afhandeling open je gewoon een context, net als in de console-app van week 4:
+In Blok B heb jij bij WDV-III en DBS-I geleerd over front-end, back-end en de request/response-cyclus. Laten we de theorie daaruit nog eens kort herhalen.
+
+## 4.9 Front-end / back-end (lagen van een webapp)
+
+Het bouwen van een webapp werkt iets anders dan een lokale Windows-applicatie met bijvoorbeeld Python of C#. In die laatste programmeertalen staat je héle programma op de computer van de gebruiker. Alle code (of de gecompileerde versie daarvan) werkt dus eigenlijk lokaal.
+
+Bij een webapp is dat anders; het back-end-gedeelte (bijv. de PHP-code of het C#-serverprogramma) staat alleen op de server. De gebruiker krijgt alleen de front-end op zijn computer, de HTML en CSS dus, of in het geval van een API: de JSON.
+
+<x-card title="Kernbegrip: lagen van een webapp (front-end / back-end / database)">
+
+Een applicatie bestaat vaak uit drie "lagen". Bij een webapp zijn die lagen ook echt van elkaar gescheiden (dat is bij Windows-apps bijvoorbeeld niet zo):
+
+- **Database:** tabellen met gegevens.
+- **Backend:** het "brein" van de applicatie. De backend haalt informatie uit de database (bijvoorbeeld alle nieuwsberichten) en maakt daar HTML-pagina's of JSON-antwoorden van. De backend zorgt ook voor het opslaan van nieuwe gegevens. De back-end is de baas, de front-end doet alleen verzoeken (die door de back-end gecontroleerd worden).
+- **Front-end:** wat de gebruiker ziet in de browser: HTML en CSS die voor een deel gegenereerd zijn door het serverprogramma. Of een JSON-antwoord in het geval van een API.
+
+</x-card>
+
+![Diagram met drie kolommen: Database (een tabel met id/title/contents), Backend (een PHP-bestand met een SELECT-query en een foreach-lus), Front-end (de gerenderde artikelen). Pijlen wijzen van links naar rechts.](./assets/lagen-webapp-diagram.png)
+
+Je back-end-programma genereert dus eigenlijk een stuk van de HTML wanneer een gebruiker je webapp bezoekt. De server (backend) zet de hele pagina in elkaar en stuurt die naar de gebruiker toe, die op zijn eigen computer de front-end kan bekijken.
+
+Daarnaast regelt de backend ook het invoegen, aanpassen en verwijderen van items. Dat gebeurt natuurlijk altijd op aanvraag van een gebruiker. Ook het bouwen van een HTML-pagina gebeurt pas wanneer een gebruiker je site bezoekt. Er gaat altijd een "request" aan vooraf.
+
+## 4.10 Request / response (hoe het internet werkt)
+
+Als je een website bezoekt doet je browser dus eigenlijk een request naar de server waar de website staat. Die server antwoordt door de webpagina op te sturen; we noemen dat een response. Het gebruiken van een website levert een hele reeks van die requests en responses op. Iedere link die je aanklikt en ieder formulier dat je verstuurt zorgen voor een nieuw verzoek naar de server.
+
+<x-card title="Kernbegrip: request/response-cycle">
+
+De **request/response-cycle** verklaart wat er op de achtergrond gebeurt als je een website bezoekt. De browser doet een verzoek (*request*) naar de server, waarop de server een antwoord stuurt (*response*).
+
+Iedere actie op een website leidt tot een nieuwe *request* (denk aan: link aanklikken, formulier versturen).
+
+- **Request:** een verzoek of opdracht aan de server. Er zijn twee soorten *requests*:
+  - **GET:** het verzoek om een pagina te tonen. Bijvoorbeeld `GET /users/index.php` zal een overzicht van alle gebruikers opvragen.
+  - **POST:** het versturen van een formulier, inclusief gegevens. Bijvoorbeeld `POST /backend/loginController.php ['user'=>'example', 'password' => '****']` zal de *request* zijn die je browser doet nadat je op "login" drukt onderaan een formulier.
+- **Response:** na een verzoek gaat de server aan de slag. Bijvoorbeeld om alle gebruikers uit de database te halen en in een HTML-lijst te zetten, of om de gebruiker in te loggen. Daarna stuurt de server een antwoord terug. Die *response* kan een stuk HTML zijn, maar ook een *redirect* naar een andere pagina.
+
+Na een *request* volgt áltijd een *response*, daarom noemen we het een cyclus. Dit is de basis van het **HTTP-protocol**. Je moet nog weten dat de server je niet onthoudt; wanneer je een tweede *request* doet heeft de server geen idee dat jij dezelfde persoon bent als van het eerste verzoek. We zeggen ook wel dat HTTP een "**stateless**" protocol is (technieken die wel onthouden wie je bent, noemen we state*ful*).
+
+</x-card>
+
+Deze kennisclip legt het principe nog eens uit met animaties erbij: <https://youtu.be/bFMkDEPDkDo>. Op onderstaande afbeelding zie je de cyclus duidelijk terug:
+
+- De computer vraagt om een pagina te zien (*request*).
+- De server doet wat slimme dingen (query naar de database, PHP-code uitvoeren).
+- De server stuurt als antwoord een stuk HTML terug (*response*).
+
+![Diagram van de request/response-cyclus: de front-end doet een REQUEST ("Gebruiker wil alle nieuwsberichten zien", GET /news/index.php) naar de backend, die met een RESPONSE (een HTML-pagina) antwoordt.](./assets/request-response-diagram.png)
+
+In onderstaande afbeelding zie je hoe er ook vaak twee cycli op elkaar volgen: eerst vraagt de computer om de pagina met een formulier, daarna vult de gebruiker het formulier in en verstuurt dat. Het versturen van het formulier is de tweede cyclus die je ziet.
+
+![Diagram met twee opeenvolgende request/response-cycli: eerst GET /news/create.php dat een HTML-formulier teruggeeft, daarna POST /backend/newsController.php met de formuliergegevens, dat met een redirect naar index.php antwoordt.](./assets/twee-cycli-diagram.png)
+
+## 4.11 Wat je nodig hebt om in C# een eigen webserver te schrijven
+
+Allereerst moet je je ervan bewust zijn dat we onze webserver als Console App gaan bouwen. Dit doen we om onze applicatie zo efficiënt mogelijk te houden. We hoeven geen mooie interface voor de webserver zelf. De administrator die de webserver aanzet, zal simpelweg instellen dat de webserver-console-app bij het opstarten van de server opstart.
+
+Dankzij de ingebouwde netwerkfunctionaliteiten in Windows is het redelijk toegankelijk om een eigen webserver te schrijven in C#. We kunnen de `System.Net.HttpListener` gebruiken: <https://learn.microsoft.com/en-us/dotnet/api/system.net.httplistener?view=net-7.0>
+
+Die `HttpListener` gaat zoals de naam al beschrijft: luisteren naar HTTP-verzoeken. We stellen een adres en poort in waarop deze luistert en starten de listener:
 
 ```csharp
-if (pad == "/voertuigen")
-{
-    using var db = new DeSleutelContext();
-    List<Voertuig> voertuigen = db.Voertuigen.ToList();
+using var listener = new HttpListener();
+listener.Prefixes.Add("http://localhost:8080/");
+listener.Start();
+```
 
-    string json = JsonSerializer.Serialize(voertuigen);
-    // ... omzetten naar bytes en versturen
+Vanaf dan kunnen we opvragen of er een HTTP-verzoek is binnengekomen op de poort waar we naar luisteren:
+
+```csharp
+HttpListenerContext context = listener.GetContext();
+HttpListenerRequest request = context.Request;
+HttpListenerResponse response = context.Response;
+```
+
+De `.GetContext()`-methode is bijzonder hier, want de applicatie blijft in de `GetContext`-methode wachten totdat er een verzoek is binnengekomen. Als je een breakpoint zet na die regel merk je dat die pas wordt bereikt wanneer een verzoek binnenkomt. Dat werkt net zoals `Console.ReadLine()` die wacht totdat de gebruiker iets getypt heeft en op enter drukt.
+
+Wanneer er een verzoek is binnengekomen kunnen we uit de `Request` en `Response` van de `HttpListenerContext` informatie halen over het verzoek en het antwoord opbouwen en versturen.
+
+**Een verzoek beantwoorden:**
+
+```csharp
+// Zet de string om naar rauwe bytes
+byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+
+// We moeten in het antwoordpakket aangeven hoe lang ons antwoord is
+response.ContentLength64 = buffer.Length;
+
+// Schrijf je antwoord naar de 'OutputStream' in het antwoordpakket. Dit is een
+// soort tunnel waardoor je het antwoord kunt schrijven naar de client.
+Stream output = response.OutputStream;
+output.Write(buffer, 0, buffer.Length);
+
+// Klaar met schrijven? Sluit dan de tunnel.
+output.Close();
+```
+
+In de `HttpListenerContext.Response` zit een "`OutputStream`". In C# kom je de term **Stream** (in het Nederlands 'stroom' zoals in waterstroom) tegen op deze plekken:
+
+- Schrijven of lezen naar bestanden
+- Schrijven of lezen van/naar computers over een netwerk (zoals het internet)
+
+Je kunt een Stream zien als een tunnel naar een eindadres. Je moet eerst door de tunnel roepen hoe lang het bericht is (`response.ContentLength64`) en vervolgens het bericht byte-voor-byte erdoor schrijven. We kunnen tekst niet zomaar sturen, maar moeten het dus omzetten naar bytes.
+
+Als de ontvanger aan de andere kant van de Stream-tunnel de gegevens gaat lezen, weet die dankzij de `ContentLength64` hoe lang het bericht is. Zodra alle bytes binnen zijn kan die dan het bericht weer opbouwen tot het originele type. Als het een string was bijvoorbeeld tot een string met:
+
+```csharp
+string textAgain = System.Text.Encoding.UTF8.GetString(buffer);
+```
+
+## 4.12 Routes in een webapplicatie
+
+Routing in een webserver houdt in dat verschillende URL's worden gekoppeld aan bepaalde acties of antwoorden. Een webserver kan de URL-structuur van een verzoek gebruiken om te bepalen welke actie of pagina aan de gebruiker moet worden teruggestuurd. Bijvoorbeeld, bij het bezoeken van "/hello" kan de server een groet tonen, en bij "/goodbye" een afscheid.
+
+Een belangrijk onderdeel van deze logica is het herkennen van de URL-paden, wat in C# kan worden gedaan met `HttpListenerRequest`:
+
+```csharp
+HttpListenerContext context = listener.GetContext();
+HttpListenerRequest request = context.Request;
+```
+
+De URL-paden worden eenvoudig geëxtraheerd via `request.Url.AbsolutePath` of via `request.Url.Segments`, waarna je logica toepast om verschillende routes af te handelen.
+
+**`request.Url.AbsolutePath`:**
+
+Bij het navigeren naar `http://localhost:8080/test` is de `AbsolutePath`: `/test`
+
+```csharp
+// Basic routing
+if (request.Url.AbsolutePath == "/hello")
+{
 }
 ```
 
-Voor één voertuig combineer je het uitlezen van het id uit de URL (week 6) met een query op de database:
+**`request.Url.Segments`:**
 
-```csharp
-using var db = new DeSleutelContext();
-Voertuig? voertuig = db.Voertuigen.FirstOrDefault(v => v.Id == id);
+`request.Url.Segments` bevat bij een verzoek naar `http://localhost:8080/user/1`:
 
-if (voertuig == null)
-{
-    context.Response.StatusCode = 404;
-    // stuur een JSON-foutmelding
-}
-else
-{
-    string json = JsonSerializer.Serialize(voertuig);
-    // stuur het voertuig
-}
-```
-
-Een POST-verzoek (nieuw voertuig toevoegen) lees je uit via de `InputStream` van de request:
-
-```csharp
-if (context.Request.HttpMethod == "POST" && pad == "/voertuigen")
-{
-    using var reader = new StreamReader(context.Request.InputStream);
-    string body = reader.ReadToEnd();
-
-    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-    Voertuig? nieuw = JsonSerializer.Deserialize<Voertuig>(body, options);
-
-    using var db = new DeSleutelContext();
-    db.Voertuigen.Add(nieuw);
-    db.SaveChanges();
-}
-```
-
-<x-callout type="tip">
-
-Je API is nu de brug tussen de client en de database, precies zoals bij "moderne systemen" in week 5: de client praat met de API, de API praat met de database.
-
-</x-callout>
-
-## 5.2 Invoer valideren
-
-Om een degelijke applicatie te maken, moeten we nog wel de invoer van de gebruiker controleren. Dat noemen we **validatie** (Engels: *validation*).
-
-Er zijn meerdere manieren om invoer te valideren; in dit moduleboek bespreken we er twee:
-
-1. **If-statements:** controleer met simpele if-statements of de invoer aan voorwaarden voldoet.
-2. **Data Annotations:** met 'attributen' uit de ingebouwde package `System.ComponentModel.DataAnnotations` leggen we voorwaarden voor invoer vast.
-
-Hier betekent het Engelse woord "Annotations": annotaties. Ook wel: aanmerking, aantekening of kanttekening. Met C#-attributes kunnen we extra informatie bij onder andere classes, methodes en eigenschappen plaatsen.
-
-```csharp
-public class User
-{
-    [Required]
-    [MaxLength(50)]
-    public string Name { get; set; }
-
-    [Range(1, 120)]
-    public int Age { get; set; }
-}
-```
-
-We demonstreren de twee manieren aan de hand van een simpele applicatie met een naam-invoerveld (`nameTextBox`), een leeftijd-invoerveld (`ageTextBox`), een `Validate`-knop en een leeg tekstveld `validationResultsTextBlock` waarin in het rood een bericht bovenaan het formulier getoond wordt.
-
-![Een klein venster 'TestValidation' met invoervelden Name (Janiek) en Age (0), een Validate-knop en bovenaan in het rood 'The field Age must be between 1 and 120.'](./assets/testvalidation-app.png)
-
-<x-callout type="note">
-
-In dit voorbeeld is het een knop in een venster, maar dezelfde validatiecode werkt net zo goed in een console-app of in een API-endpoint — je maakt een object van de ingevoerde gegevens en controleert dat.
-
-</x-callout>
-
-### Valideren met if-statements
-
-```csharp
-private void validateButton_Click(object sender, RoutedEventArgs e)
-{
-    var user = new User
-    {
-        Name = nameTextBox.Text,
-        Age = int.TryParse(ageTextBox.Text, out var age) ? age : 0
-    };
-
-    var errors = new List<string>();
-
-    if (string.IsNullOrWhiteSpace(user.Name))
-    {
-        errors.Add("The Name field is required.");
-    }
-    else if (user.Name.Length > 50)
-    {
-        errors.Add("The field Name must be a string with a maximum length of 50.");
-    }
-
-    if (user.Age < 1 || user.Age > 120)
-    {
-        errors.Add("The field Age must be between 1 and 120.");
-    }
-
-    if (errors.Count > 0)
-    {
-        validationResultsTextBlock.Text = string.Join(Environment.NewLine, errors);
-    }
-    else
-    {
-        validationResultsTextBlock.Text = "Validation succeeded!";
-    }
-}
-```
-
-### Valideren met Data Annotations
-
-Allereerst staat bovenin het script van de `User`-model en de Window:
-
-```csharp
-using System.ComponentModel.DataAnnotations;
-```
-
-De `User`-model krijgt deze attributen die de data 'annoteren':
-
-```csharp
-public class User
-{
-    [Required]
-    [MaxLength(50)]
-    public string Name { get; set; }
-
-    [Range(1, 120)]
-    public int Age { get; set; }
-}
-```
-
-Bij het klikken op de knop **instantiëren** we een `User` met de ingevoerde gegevens. Vervolgens maken we een `ValidationContext` en roepen we `Validator.TryValidateObject` aan, die aan de hand van de attributen in de `User`-model validatie gaat uitvoeren:
-
-```csharp
-private void validateButton_Click(object sender, RoutedEventArgs e)
-{
-    var user = new User
-    {
-        Name = nameTextBox.Text,
-        Age = int.TryParse(ageTextBox.Text, out var age) ? age : 0
-    };
-
-    var context = new ValidationContext(user);
-    var results = new List<ValidationResult>();
-
-    if (!Validator.TryValidateObject(user, context, results, true))
-    {
-        var errors = new List<string>();
-
-        foreach (var validationResult in results)
-        {
-            errors.Add(validationResult.ErrorMessage);
-        }
-
-        validationResultsTextBlock.Text = string.Join(Environment.NewLine, errors);
-    }
-    else
-    {
-        validationResultsTextBlock.Text = "Validation succeeded!";
-    }
-}
-```
-
-In de documentatie van Microsoft is een lijst te vinden met alle attributen die je bij een eigenschap kunt plaatsen: <https://learn.microsoft.com/en-us/dotnet/api/system.componentmodel.dataannotations>
-
-![Een tabel uit de Microsoft-documentatie met attributen zoals MaxLengthAttribute, MinLengthAttribute, PhoneAttribute, RangeAttribute, RegularExpressionAttribute en RequiredAttribute, elk met een korte omschrijving](./assets/dataannotations-lijst.png)
-
-![Dezelfde documentatietabel met pijlen die MaxLengthAttribute, RangeAttribute en RequiredAttribute koppelen aan een codevoorbeeld met [Required], [MaxLength(50)] en [Range(1, 120)]](./assets/dataannotations-attributen.jpg)
-
-<x-callout type="warning">
-
-C#-attribute-classes zijn bijzonder: je mag bij het gebruiken van de klasse de 'Attribute'-suffix weglaten. Dus je mag zowel `[RequiredAttribute]` als `[Required]` schrijven, beide zijn valide.
-
-</x-callout>
-
-<x-compare>
-<x-compare-item title="If-statements">
-
-- Volledige controle, geen extra kennis nodig
-- Wordt al snel lang en repetitief bij veel velden
-- De regel en de melding staan in je methode, niet bij het model
-
-</x-compare-item>
-<x-compare-item title="Data Annotations">
-
-- Kort: de regels staan als attributen bij het model
-- Herbruikbaar: overal waar je het model valideert gelden dezelfde regels
-- Je hebt `Validator.TryValidateObject` één keer nodig
-
-</x-compare-item>
-</x-compare>
-
-## 5.3 Validatie met [RegularExpression]
-
-De `[RegularExpression]`-attribuut in C# (meestal gebruikt in combinatie met data-annotaties) valideert of een string overeenkomt met een bepaald **patroon**. Dit patroon wordt geschreven in een **Regular Expression** (regex).
-
-**Gebruik:**
-
-```csharp
-[RegularExpression(@"^[0-9]{4}[A-Z]{2}$", ErrorMessage = "Postcode moet 4 cijfers gevolgd door 2 hoofdletters zijn.")]
-public string Postcode { get; set; }
-```
-
-In dit voorbeeld valideert het attribuut of de postcode voldoet aan het formaat `1234AB`.
-
-### Wat is Regular Expression?
-
-Een regex is een **tekstpatroon** waarmee je kunt controleren of een string aan bepaalde eisen voldoet. Regex is niet alleen onderdeel van C#, maar bestaat ook in veel andere talen zoals: JavaScript, Python, Java, PHP, Ruby, Perl en zelfs in text editors zoals VS Code en Notepad++.
-
-### Voorbeelden met uitleg per teken
-
-**Nederlandse postcode:** `^[0-9]{4}[A-Z]{2}$`
-
-- `^` — begin van de string
-- `[0-9]{4}` — precies 4 cijfers:
-  - `[` — start set
-  - `0-9` — de cijfers 0 t/m 9
-  - `]` — eind set
-  - `{` — start herhalingsinformatie, herhaalt wat hiervoor stond (de set) zo veel keer
-  - `4` — precies 4 keer
-  - `}` — eind herhalingsinformatie
-- `[A-Z]{2}` — precies 2 hoofdletters
-  - `A-Z` — de letters A t/m Z (in hoofdletters)
-- `$` — einde van de string
-
-Voorbeeld geldig: `1234AB` — Ongeldig: `123AB`, `1234ab`, `12 34AB`
-
-Nu schrijven sommige mensen hun postcode wel eens met een spatie tussen de cijfers en letters. We zouden de regex als volgt kunnen aanpassen om ook een spatie toe te staan: `^[0-9]{4}\s?[A-Z]{2}$`
-
-In deze aangepaste regex betekent `\s?` dat op die plek een spatie of ander witruimte-teken (`\s`) optioneel (`?`) is. Nu ook geldig: `1234 AB`
-
-**Telefoonnummer (NL mobiel):** `^06\d{8}$`
-
-- `^` — begin van de string
-- `06` — moet beginnen met 06
-- `\d{8}` — precies 8 cijfers, `\d` = cijfer
-- `$` — einde van de string
-
-Voorbeeld geldig: `0612345678` — Ongeldig: `0712345678`, `06-12345678`
-
-Je kunt Regular Expression dus gebruiken om complexere validatieregels te schrijven. Via deze website kun je jouw regex testen en uitleg vinden over de overige tekens: <https://regex101.com/>
-
-![Screenshot van regex101.com met de regex ^[0-9]{4}\s?[A-Z]{2}$, een lijst teststrings waarvan 4813 AB en 1212AB matchen (groen omcirkeld) en 222BA, test en 2112 aa niet (rood kruis). Links is de flavor '.NET 7.0 (C#)' geselecteerd.](./assets/regex101.png)
+- `[0]` = `/`
+- `[1]` = `/user/`
+- `[2]` = `1`
 
 <x-invul>
-prompt: Vul de regex aan die precies 4 cijfers, dan precies 2 hoofdletters vereist (postcode zonder spatie).
+prompt: Vul de code aan die een webserver start die luistert op poort 8080.
 code: |-
-  ^[0-9]___[A-Z]___$
+  using var listener = new HttpListener();
+  listener.Prefixes.___("http://localhost:8080/");
+  listener.___();
 blanks:
-  - answer: "{4}"
-  - answer: "{2}"
-explanation: "{4} en {2} geven aan hoe vaak de set ervoor herhaald moet worden."
+  - answer: Add
+  - answer: Start
+explanation: "Je voegt een prefix (adres + poort) toe en roept daarna Start() aan."
 </x-invul>
 
-<x-vind-de-fout>
-code: |-
-  public class Klant
-  {
-      [Required]
-      public string Naam { get; set; }
-
-      [Range(1, 120)]
-      public string Leeftijd { get; set; }
-  }
-errorLine: 7
-hint: Kijk naar het type van de property waar [Range] op staat.
-explanation: "[Range(1, 120)] hoort op een getal (int), niet op een string. Maak van Leeftijd een int."
-</x-vind-de-fout>
+<x-keuzevraag>
+question: Wat doet listener.GetContext()?
+options:
+  - Het stuurt meteen een antwoord terug
+  - Het wacht (blokkeert) tot er een HTTP-verzoek binnenkomt
+  - Het sluit de server af
+  - Het leest een bestand van schijf
+correct: 1
+explanation: Net als Console.ReadLine() blijft de code op deze regel wachten tot er iets binnenkomt.
+</x-keuzevraag>
 
 <x-nav label="Klaar met de theorie?">
 [Oefeningen](/pages/week7-oefeningen.html)
 [Quiz](/pages/week7-meetmoment.html)
 [Inleveropdracht](/pages/week7-inleveropdracht.html)
-[Checklist](/pages/checklist.html)
+[Week 8](/pages/week8-theorie.html)
 </x-nav>

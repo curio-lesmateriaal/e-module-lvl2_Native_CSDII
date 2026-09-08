@@ -1,187 +1,301 @@
 ---
 week: 6
-title: API — zelf bouwen
-goal: je kunt een eenvoudige webserver in C# bouwen met HttpListener, HTTP-verzoeken beantwoorden met JSON en verschillende routes afhandelen
-accent: rose
-summary: Herhaling van front-end/back-end en de request/response-cyclus, en dan zelf een webserver bouwen met System.Net.HttpListener — verzoeken ontvangen, een antwoord in bytes wegschrijven en routes herkennen.
+title: API — concept & consumeren
+goal: je begrijpt wat een REST API is en kunt er in C# één aanroepen met HttpClient en het JSON-antwoord deserialiseren naar objecten
+accent: sky
+summary: Een API laat applicaties met elkaar communiceren via HTTP en JSON. Je leert wat endpoints en methoden zijn, hoe je met HttpClient een API consumeert, hoe JSON is opgebouwd en hoe je het deserialiseert naar C#-classes. Ook zet je een tijdelijke nep-API op.
 leeruitkomsten:
-  - Ik kan de drie lagen van een webapp benoemen en uitleggen
-  - Ik kan de request/response-cyclus uitleggen en weet dat HTTP stateless is
-  - Ik kan met HttpListener een webserver starten en op een poort luisteren
-  - Ik kan een tekstantwoord omzetten naar bytes en wegschrijven naar de OutputStream
-  - Ik kan met AbsolutePath of Segments verschillende routes afhandelen
+  - Ik kan uitleggen wat een API, een client, een server en een endpoint zijn
+  - Ik ken de HTTP-methoden GET, POST, PUT en DELETE en wat ze doen
+  - Ik kan met HttpClient een API aanroepen in een async methode
+  - Ik kan de opbouw van een JSON-object lezen (eigenschappen, waarden, arrays, geneste objecten)
+  - Ik kan JSON deserialiseren naar een C#-class, ook met lijsten en geneste objecten
+  - Ik kan een tijdelijke nep-API (mock) opzetten om mijn client te testen
 ---
 
-## 4.8 Een API bouwen
+## 4.1 Inleiding
 
-Om een API te kunnen aanbieden moeten we een webserver opzetten. Die gaat op verzoeken reageren met JSON-antwoorden.
+In week 3 en 4 heb je geleerd hoe je gegevens in een C#-app op kunt slaan in een database, maar er zijn nog meer manieren om gegevens op te slaan en uit te wisselen met andere apps: API's.
 
-In Blok B heb jij bij WDV-III en DBS-I geleerd over front-end, back-end en de request/response-cyclus. Laten we de theorie daaruit nog eens kort herhalen.
+## 4.2 Wat is een API?
 
-## 4.9 Front-end / back-end (lagen van een webapp)
+Een API, of **Application Programming Interface**, is een set van protocollen, routines en tools die softwareapplicaties in staat stellen met elkaar te communiceren.
 
-Het bouwen van een webapp werkt iets anders dan een lokale Windows-applicatie met bijvoorbeeld Python of C#. In die laatste programmeertalen staat je héle programma op de computer van de gebruiker. Alle code (of de gecompileerde versie daarvan) werkt dus eigenlijk lokaal.
+In eenvoudigere woorden dient een API als een tussenpersoon tussen verschillende softwaresystemen, waardoor ze gegevens en instructies kunnen uitwisselen. Het definieert de regels en standaarden voor hoe applicaties met elkaar kunnen communiceren en specificeert de soorten verzoeken en antwoorden die zijn toegestaan.
 
-Bij een webapp is dat anders; het back-end-gedeelte (bijv. de PHP-code of het C#-serverprogramma) staat alleen op de server. De gebruiker krijgt alleen de front-end op zijn computer, de HTML en CSS dus, of in het geval van een API: de JSON.
+De API is vaak actief op de **server** en de applicatie die de API aanroept noemen we de **client**. Een client kan een webpagina zijn die *in JavaScript* via `fetch` de API aanroept. Het kan ook een C#-applicatie zijn die gebruik maakt van de `HttpClient`-klasse om de API aan te roepen.
 
-<x-card title="Kernbegrip: lagen van een webapp (front-end / back-end / database)">
+Het "aanroepen van een API" is simpelweg het laden van een bijzondere webpagina. Wat de webpagina bijzonder maakt is dat deze geen HTML en CSS bevat, maar 'JSON' (of XML). Vrijwel alle programmeertalen en systemen kunnen JSON begrijpen en omzetten naar objecten in code. Daarmee kunnen we code laten reageren op gegevens die in JSON genoteerd zijn.
 
-Een applicatie bestaat vaak uit drie "lagen". Bij een webapp zijn die lagen ook echt van elkaar gescheiden (dat is bij Windows-apps bijvoorbeeld niet zo):
+![Handgetekend diagram: een CLIENT stuurt via HTTP (GET, POST, DELETE, PUT) en een URL (/surveys, /surveys/123) een verzoek naar de SERVER, die met JSON terugantwoordt](./assets/rest-api-diagram.jpg)
 
-- **Database:** tabellen met gegevens.
-- **Backend:** het "brein" van de applicatie. De backend haalt informatie uit de database (bijvoorbeeld alle nieuwsberichten) en maakt daar HTML-pagina's of JSON-antwoorden van. De backend zorgt ook voor het opslaan van nieuwe gegevens. De back-end is de baas, de front-end doet alleen verzoeken (die door de back-end gecontroleerd worden).
-- **Front-end:** wat de gebruiker ziet in de browser: HTML en CSS die voor een deel gegenereerd zijn door het serverprogramma. Of een JSON-antwoord in het geval van een API.
+<p style="text-align:center"><em>Bron: <a href="https://mannhowie.com/rest-api">https://mannhowie.com/rest-api</a></em></p>
 
-</x-card>
+In het bovenstaande plaatje zien we dat de **client** via de methodes GET, POST, DELETE of PUT een verzoek kan doen naar een bepaalde URL. Die URL is een weblocatie op een **server**. Er zijn verschillende URL's die verschillende acties uitvoeren; we noemen dat ook wel **API routes** of **endpoints**.
 
-![Diagram met drie kolommen: Database (een tabel met id/title/contents), Backend (een PHP-bestand met een SELECT-query en een foreach-lus), Front-end (de gerenderde artikelen). Pijlen wijzen van links naar rechts.](./assets/lagen-webapp-diagram.png)
+Bijvoorbeeld:
 
-Je back-end-programma genereert dus eigenlijk een stuk van de HTML wanneer een gebruiker je webapp bezoekt. De server (backend) zet de hele pagina in elkaar en stuurt die naar de gebruiker toe, die op zijn eigen computer de front-end kan bekijken.
+| Methode | Route / Endpoint | Beschrijving |
+|---|---|---|
+| GET | `/surveys` | Geeft alle enquêtes terug |
+| GET | `/surveys/123` | Geeft de enquête terug met survey_id '123' |
+| POST | `/surveys` | Voegt een enquête toe aan de server. De inhoud van het POST-verzoek moet een JSON-object zijn met daarin de gegevens van de enquête. |
+| DELETE | `/surveys/123` | Verwijdert de enquête met survey_id '123' |
 
-Daarnaast regelt de backend ook het invoegen, aanpassen en verwijderen van items. Dat gebeurt natuurlijk altijd op aanvraag van een gebruiker. Ook het bouwen van een HTML-pagina gebeurt pas wanneer een gebruiker je site bezoekt. Er gaat altijd een "request" aan vooraf.
+Een ander voorbeeld: stel dat je een weer-app ontwikkelt die informatie over de actuele weersomstandigheden nodig heeft. In plaats van je eigen meteorologische meetinstrumenten op verschillende locaties in Nederland te installeren, kun je de API van een weerprovider gebruiken om de benodigde gegevens in realtime op te halen.
 
-## 4.10 Request / response (hoe het internet werkt)
+Door een API te gebruiken, kun je tijd en middelen besparen door de functionaliteit van bestaande systemen te benutten, en het kan ook de algehele prestaties en schaalbaarheid van je applicatie verbeteren.
 
-Als je een website bezoekt doet je browser dus eigenlijk een request naar de server waar de website staat. Die server antwoordt door de webpagina op te sturen; we noemen dat een response. Het gebruiken van een website levert een hele reeks van die requests en responses op. Iedere link die je aanklikt en ieder formulier dat je verstuurt zorgen voor een nieuw verzoek naar de server.
+## 4.3 Moderne systemen
 
-<x-card title="Kernbegrip: request/response-cycle">
+In de vorige module verbond je client-app rechtstreeks met de MySQL-database. Bij moderne systemen gebeurt dat meestal niet: de client stuurt een verzoek naar een **API**, en die API vormt de brug naar de database — ze ontvangt het verzoek, verwerkt het en praat namens de client met de database.
 
-De **request/response-cycle** verklaart wat er op de achtergrond gebeurt als je een website bezoekt. De browser doet een verzoek (*request*) naar de server, waarop de server een antwoord stuurt (*response*).
+Dat heeft een paar voordelen:
 
-Iedere actie op een website leidt tot een nieuwe *request* (denk aan: link aanklikken, formulier versturen).
+- **Scheiding van verantwoordelijkheden** — de databaselogica zit achter de API, niet in de client. Onderdelen kun je zo makkelijker wijzigen of vervangen.
+- **Gestandaardiseerde communicatie** — elke app kan met de API praten, ongeacht de gebruikte technologie.
+- **Beveiliging** — de API kan per gebruiker of client bepalen wat wel en niet mag, zodat niet iedereen zomaar bij de database kan.
 
-- **Request:** een verzoek of opdracht aan de server. Er zijn twee soorten *requests*:
-  - **GET:** het verzoek om een pagina te tonen. Bijvoorbeeld `GET /users/index.php` zal een overzicht van alle gebruikers opvragen.
-  - **POST:** het versturen van een formulier, inclusief gegevens. Bijvoorbeeld `POST /backend/loginController.php ['user'=>'example', 'password' => '****']` zal de *request* zijn die je browser doet nadat je op "login" drukt onderaan een formulier.
-- **Response:** na een verzoek gaat de server aan de slag. Bijvoorbeeld om alle gebruikers uit de database te halen en in een HTML-lijst te zetten, of om de gebruiker in te loggen. Daarna stuurt de server een antwoord terug. Die *response* kan een stuk HTML zijn, maar ook een *redirect* naar een andere pagina.
+## 4.4 Voorbeelden
 
-Na een *request* volgt áltijd een *response*, daarom noemen we het een cyclus. Dit is de basis van het **HTTP-protocol**. Je moet nog weten dat de server je niet onthoudt; wanneer je een tweede *request* doet heeft de server geen idee dat jij dezelfde persoon bent als van het eerste verzoek. We zeggen ook wel dat HTTP een "**stateless**" protocol is (technieken die wel onthouden wie je bent, noemen we state*ful*).
+Netflix, Instagram en YouTube werken allemaal zo:
 
-</x-card>
+- **Netflix** — de website en app halen via API's gebruikersprofielen, aanbevelingen en film-/serie-informatie op bij de backend.
+- **Instagram** — de app gebruikt API's om foto's te plaatsen en op te halen, gebruikers te volgen en de nieuwsfeed te tonen.
+- **YouTube** — biedt API's waarmee ook externe ontwikkelaars video's kunnen zoeken, uploaden en afspeellijsten beheren.
 
-Deze kennisclip legt het principe nog eens uit met animaties erbij: <https://youtu.be/bFMkDEPDkDo>. Op onderstaande afbeelding zie je de cyclus duidelijk terug:
+Steeds is de API de tussenlaag tussen de client-app en de databases.
 
-- De computer vraagt om een pagina te zien (*request*).
-- De server doet wat slimme dingen (query naar de database, PHP-code uitvoeren).
-- De server stuurt als antwoord een stuk HTML terug (*response*).
+## 4.5 Een API aanroepen
 
-![Diagram van de request/response-cyclus: de front-end doet een REQUEST ("Gebruiker wil alle nieuwsberichten zien", GET /news/index.php) naar de backend, die met een RESPONSE (een HTML-pagina) antwoordt.](./assets/request-response-diagram.png)
+We hebben nu een idee over wat een API is en waarom we het zouden gebruiken. Wanneer een client-applicatie een API gebruikt noemen we dat ook wel 'consumeren' (Engels: *to consume*). Zoals eerder gezegd is het aanroepen van een API simpelweg het laden van een bijzondere webpagina. Laten we eens kijken naar een voorbeeld: **PokéAPI** (<https://pokeapi.co/>).
 
-In onderstaande afbeelding zie je hoe er ook vaak twee cycli op elkaar volgen: eerst vraagt de computer om de pagina met een formulier, daarna vult de gebruiker het formulier in en verstuurt dat. Het versturen van het formulier is de tweede cyclus die je ziet.
+![Het logo van PokéAPI](./assets/pokeapi-logo.png)
 
-![Diagram met twee opeenvolgende request/response-cycli: eerst GET /news/create.php dat een HTML-formulier teruggeeft, daarna POST /backend/newsController.php met de formuliergegevens, dat met een redirect naar index.php antwoordt.](./assets/twee-cycli-diagram.png)
+In onze lessen gebruiken we graag PokéAPI omdat het een gratis toegankelijke API is, waar geen bijzonderheden zijn qua authenticatie. Waar je bij de meeste API's moet registreren, kunnen we hier direct bij allerlei gegevens uit de Pokémon-games.
 
-## 4.11 Wat je nodig hebt om in C# een eigen webserver te schrijven
+Neem bijvoorbeeld deze API-route: <https://pokeapi.co/api/v2/pokemon/ditto>
 
-Allereerst moet je je ervan bewust zijn dat we onze webserver als Console App gaan bouwen. Dit doen we om onze applicatie zo efficiënt mogelijk te houden. We hoeven geen mooie interface voor de webserver zelf. De administrator die de webserver aanzet, zal simpelweg instellen dat de webserver-console-app bij het opstarten van de server opstart.
+Wanneer je deze in de browser bezoekt, zie je de volgende JSON:
 
-Dankzij de ingebouwde netwerkfunctionaliteiten in Windows is het redelijk toegankelijk om een eigen webserver te schrijven in C#. We kunnen de `System.Net.HttpListener` gebruiken: <https://learn.microsoft.com/en-us/dotnet/api/system.net.httplistener?view=net-7.0>
+![Een browservenster op pokeapi.co/api/v2/pokemon/ditto met een grote hoeveelheid platte JSON-tekst](./assets/browser-json-ditto.png)
 
-Die `HttpListener` gaat zoals de naam al beschrijft: luisteren naar HTTP-verzoeken. We stellen een adres en poort in waarop deze luistert en starten de listener:
+<x-callout type="tip">
+
+Sommige browsers stijlen JSON met extra opmaak en functies. Open de broncode van de pagina om te zien wat de API daadwerkelijk teruggeeft (alleen tekst).
+
+</x-callout>
+
+Om een API te consumeren in C# gebruiken we de `HttpClient`-klasse. Dat geeft ons een soort onzichtbare browser waarmee we webverzoeken kunnen doen:
 
 ```csharp
-using var listener = new HttpListener();
-listener.Prefixes.Add("http://localhost:8080/");
-listener.Start();
+var client = new HttpClient();
+var response = await client.GetAsync("https://pokeapi.co/api/v2/pokemon/ditto");
+var content = await response.Content.ReadAsStringAsync();
 ```
 
-Vanaf dan kunnen we opvragen of er een HTTP-verzoek is binnengekomen op de poort waar we naar luisteren:
+Omdat het doen van een webverzoek lang kan duren zijn enkele methodes hier **asynchroon (Async)**. Om die reden moet de methode waarin dit gebruikt wordt ook asynchroon zijn. Bij een Console App ziet een asynchrone `Main`-signature er zo uit:
 
 ```csharp
-HttpListenerContext context = listener.GetContext();
-HttpListenerRequest request = context.Request;
-HttpListenerResponse response = context.Response;
+static async Task Main(string[] args)
 ```
 
-De `.GetContext()`-methode is bijzonder hier, want de applicatie blijft in de `GetContext`-methode wachten totdat er een verzoek is binnengekomen. Als je een breakpoint zet na die regel merk je dat die pas wordt bereikt wanneer een verzoek binnenkomt. Dat werkt net zoals `Console.ReadLine()` die wacht totdat de gebruiker iets getypt heeft en op enter drukt.
+Na de bovenstaande code staat in de `content`-variabele de JSON van de Pokémon genaamd "ditto". Dat JSON-object bevat allerlei informatie die we mogelijk willen ophalen, zoals bijvoorbeeld de id, naam en het gewicht van de Pokémon. Om die gegevens op te halen moeten we in C# een klasse maken die overeenkomt met de JSON:
 
-Wanneer er een verzoek is binnengekomen kunnen we uit de `Request` en `Response` van de `HttpListenerContext` informatie halen over het verzoek en het antwoord opbouwen en versturen.
+<x-compare>
+<x-compare-item title="JSON">
 
-**Een verzoek beantwoorden:**
-
-```csharp
-// Zet de string om naar rauwe bytes
-byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-
-// We moeten in het antwoordpakket aangeven hoe lang ons antwoord is
-response.ContentLength64 = buffer.Length;
-
-// Schrijf je antwoord naar de 'OutputStream' in het antwoordpakket. Dit is een
-// soort tunnel waardoor je het antwoord kunt schrijven naar de client.
-Stream output = response.OutputStream;
-output.Write(buffer, 0, buffer.Length);
-
-// Klaar met schrijven? Sluit dan de tunnel.
-output.Close();
-```
-
-In de `HttpListenerContext.Response` zit een "`OutputStream`". In C# kom je de term **Stream** (in het Nederlands 'stroom' zoals in waterstroom) tegen op deze plekken:
-
-- Schrijven of lezen naar bestanden
-- Schrijven of lezen van/naar computers over een netwerk (zoals het internet)
-
-Je kunt een Stream zien als een tunnel naar een eindadres. Je moet eerst door de tunnel roepen hoe lang het bericht is (`response.ContentLength64`) en vervolgens het bericht byte-voor-byte erdoor schrijven. We kunnen tekst niet zomaar sturen, maar moeten het dus omzetten naar bytes.
-
-Als de ontvanger aan de andere kant van de Stream-tunnel de gegevens gaat lezen, weet die dankzij de `ContentLength64` hoe lang het bericht is. Zodra alle bytes binnen zijn kan die dan het bericht weer opbouwen tot het originele type. Als het een string was bijvoorbeeld tot een string met:
-
-```csharp
-string textAgain = System.Text.Encoding.UTF8.GetString(buffer);
-```
-
-## 4.12 Routes in een webapplicatie
-
-Routing in een webserver houdt in dat verschillende URL's worden gekoppeld aan bepaalde acties of antwoorden. Een webserver kan de URL-structuur van een verzoek gebruiken om te bepalen welke actie of pagina aan de gebruiker moet worden teruggestuurd. Bijvoorbeeld, bij het bezoeken van "/hello" kan de server een groet tonen, en bij "/goodbye" een afscheid.
-
-Een belangrijk onderdeel van deze logica is het herkennen van de URL-paden, wat in C# kan worden gedaan met `HttpListenerRequest`:
-
-```csharp
-HttpListenerContext context = listener.GetContext();
-HttpListenerRequest request = context.Request;
-```
-
-De URL-paden worden eenvoudig geëxtraheerd via `request.Url.AbsolutePath` of via `request.Url.Segments`, waarna je logica toepast om verschillende routes af te handelen.
-
-**`request.Url.AbsolutePath`:**
-
-Bij het navigeren naar `http://localhost:8080/test` is de `AbsolutePath`: `/test`
-
-```csharp
-// Basic routing
-if (request.Url.AbsolutePath == "/hello")
+```json
 {
+  "id": 132,
+  "name": "ditto",
+  "weight": 40
 }
 ```
 
-**`request.Url.Segments`:**
+</x-compare-item>
+<x-compare-item title="Klasse die overeenkomt met JSON">
 
-`request.Url.Segments` bevat bij een verzoek naar `http://localhost:8080/user/1`:
+```csharp
+internal class Pokemon
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Weight { get; set; }
+}
+```
 
-- `[0]` = `/`
-- `[1]` = `/user/`
-- `[2]` = `1`
+</x-compare-item>
+</x-compare>
+
+Vervolgens kunnen we de JSON 'deserialiseren' naar een C#-object. Met deserialiseren bedoelen we: van tekst naar een object. Serialiseren is het tegenovergestelde: van een object naar tekst. Deserialiseren gaat als volgt:
+
+```csharp
+var options = new JsonSerializerOptions
+{
+    PropertyNameCaseInsensitive = true
+};
+
+var pokemon = JsonSerializer.Deserialize<Pokemon>(content, options);
+
+Console.WriteLine("Gedeserialiseerde gegevens:");
+Console.WriteLine(pokemon.Id);
+Console.WriteLine(pokemon.Name);
+```
+
+<x-callout type="note">
+
+De functie om te (de)serialiseren werkt dankzij `using System.Text.Json;`
+
+</x-callout>
+
+We geven aan de generieke methode `JsonSerializer.Deserialize<T>` het type van de klasse op de plek `T`. Zo weet de serializer welke eigenschappen er in de JSON verwacht kunnen worden. Omdat we de C#-conventies voor eigenschappen willen aanhouden (PascalCase), maar in de JSON "id", "name" en "weight" zonder hoofdletters zijn geschreven, moeten we ook een optie instellen om hoofdletterongevoeligheid aan te zetten:
+
+```csharp
+var options = new JsonSerializerOptions
+{
+    PropertyNameCaseInsensitive = true
+};
+```
 
 <x-invul>
-prompt: Vul de code aan die een webserver start die luistert op poort 8080.
+prompt: Vul de regel aan die de JSON in `content` omzet naar een Pokemon-object (met de options voor hoofdletterongevoeligheid).
 code: |-
-  using var listener = new HttpListener();
-  listener.Prefixes.___("http://localhost:8080/");
-  listener.___();
+  var pokemon = JsonSerializer.___<___>(content, options);
 blanks:
-  - answer: Add
-  - answer: Start
-explanation: "Je voegt een prefix (adres + poort) toe en roept daarna Start() aan."
+  - answer: Deserialize
+  - answer: Pokemon
+explanation: "Deserialize<T> zet tekst om naar een object van type T."
 </x-invul>
 
-<x-keuzevraag>
-question: Wat doet listener.GetContext()?
-options:
-  - Het stuurt meteen een antwoord terug
-  - Het wacht (blokkeert) tot er een HTTP-verzoek binnenkomt
-  - Het sluit de server af
-  - Het leest een bestand van schijf
-correct: 1
-explanation: Net als Console.ReadLine() blijft de code op deze regel wachten tot er iets binnenkomt.
-</x-keuzevraag>
+## 4.6 JSON en deserialiseren
+
+JSON staat voor **JavaScript Object Notation** en het is een gestructureerd datatransmissieformaat dat veel wordt gebruikt voor het uitwisselen van gegevens tussen een server en een client. Het is leesbaar voor zowel mensen als computers.
+
+JSON is opgebouwd uit twee hoofdonderdelen: eigenschappen en waarden. Het gebruikt een structuur die lijkt op een dictionary.
+
+Een JSON-object begint met een openingsaccolade `{` en eindigt met een sluitende accolade `}`. Tussen de accolades bevinden zich eigenschap-waarde-paren, gescheiden door een dubbele punt `:`.
+
+Een eigenschap heeft een string-naam en kan een waarde van verschillende typen bevatten, zoals een tekenreeks, een getal, een boolean, een array of zelfs een ander JSON-object.
+
+Hier is een voorbeeld van een JSON-object:
+
+```json
+{
+  "name": "John Doe",
+  "age": 25,
+  "married": false,
+  "hobbies": ["football", "reading", "traveling"],
+  "address": {
+    "street": "Main St",
+    "city": "New York",
+    "state": "NY"
+  }
+}
+```
+
+In dit voorbeeld zijn er 5 eigenschappen:
+
+- "name" heeft een string als waarde
+- "age" heeft een getal als waarde
+- De waarde van "married" is van het type boolean
+- "hobbies" heeft een array als waarde. Ieder item in deze array is van het type "string"
+- "address" heeft een JSON-object als waarde, met 3 eigenschappen:
+  - "street" heeft een string als waarde
+  - Etc…
+
+Zoals we zien herkennen we arrays in JSON aan blokhaken. Daarnaast is het mogelijk om door middel van 'nesting' JSON-objecten in JSON-objecten te hebben. Het is ook mogelijk om arrays in arrays, of arrays in JSON-objecten te plaatsen.
+
+Wanneer je een JSON-array als "hobbies" wilt deserialiseren geef je de eigenschap het type `List<T>`. In het geval van "hobbies" zou het best passende type voor `T` logischerwijs `string` zijn.
+
+Wanneer een eigenschap weer een object is, moet daar een andere klasse voor gemaakt worden. Om de bovenstaande JSON te deserialiseren zouden de volgende klassen nodig zijn:
+
+```csharp
+internal class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public bool Married { get; set; }
+    public List<string> Hobbies { get; set; }
+    public Address Address { get; set; }
+}
+
+internal class Address
+{
+    public string Street { get; set; }
+    public string City { get; set; }
+    public string State { get; set; }
+}
+```
+
+Om (weer met hoofdletterongevoeligheid) de JSON te deserialiseren gebruik je:
+
+```csharp
+var personJson = "{\"name\":\"John Doe\",\"age\":25,\"married\":false, ... }";
+
+var options = new JsonSerializerOptions
+{
+    PropertyNameCaseInsensitive = true
+};
+
+var person = JsonSerializer.Deserialize<Person>(personJson, options);
+
+Console.WriteLine($"{person.Name} woont in {person.Address.City}");
+```
+
+Soms is de JSON die je wilt deserialiseren een array. Dan kun je direct aan de `JsonSerializer.Deserialize<T>` een `List` met passend type geven. Voor een array met getallen gebruik je bijvoorbeeld:
+
+```csharp
+var arrayJson = "[3, 4, 5]";
+var numbers = JsonSerializer.Deserialize<List<int>>(arrayJson);
+
+Console.WriteLine(numbers[1]); // 4
+```
+
+Als je geen van de methodes in `List` nodig hebt (zoals toevoegen en zoeken van items), dan werkt in plaats van een `List` een array ook als type:
+
+```csharp
+var numbers = JsonSerializer.Deserialize<int[]>(arrayJson);
+```
+
+## 4.7 Een test-API
+
+Wanneer je een client wilt bouwen, maar nog geen API hebt, zijn er verschillende manieren om een tijdelijke nep-API op te zetten. Zo'n nep-API geeft simpelweg JSON als antwoord, zonder dat het echt aan een database is gekoppeld. We noemen dat 'mocking'. Dit zijn enkele manieren om een nep-API op te zetten:
+
+1. Je kunt een simpel PHP-script schrijven om JSON terug te geven:
+
+   ```php
+   <?php
+   echo '['
+       . '{"id":1,"name":"Curio","postalCode":"1234AB"},'
+       . '{"id":2,"name":"Hizmet","postalCode":"4814AA"}'
+       . ']';
+   ```
+
+2. Je kunt gebruik maken van een online tool om mock-data terug te geven:
+   1. <https://mocki.io/fake-json-api>
+   2. <https://jsonplaceholder.typicode.com/>
+   3. <https://mockend.com/>
+   4. <https://mockapi.io/>
+
+Als we optie 1 gebruiken en die via Laragon als 'test.php' beschikbaar stellen, dan krijgen we een nep-API-route `http://localhost/test.php`:
+
+![Een browser op localhost/test.php met de JSON-uitvoer van het PHP-script](./assets/localhost-test-php.png)
+
+Die route kunnen we in C# gebruiken om onze client te testen.
+
+<x-koppelvraag>
+prompt: Koppel elke HTTP-methode aan wat je ermee doet in een REST API.
+pairs:
+  - left: GET
+    right: Gegevens ophalen
+  - left: POST
+    right: Nieuwe gegevens toevoegen
+  - left: PUT
+    right: Bestaande gegevens wijzigen
+  - left: DELETE
+    right: Gegevens verwijderen
+</x-koppelvraag>
 
 <x-nav label="Klaar met de theorie?">
 [Oefeningen](/pages/week6-oefeningen.html)

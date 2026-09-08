@@ -1,42 +1,42 @@
 ---
 week: 6
-title: De Sleutel — de eerste eigen API
+title: De Sleutel — koppeling met de RDW-API
 subtitle: Inleveropdracht Week 6
 client: Autoverhuur De Sleutel
-maxPoints: 13
+maxPoints: 12
 deliverables:
-  - Een console-app die met HttpListener op een poort luistert
-  - Minstens drie routes die JSON teruggeven
-  - Screenshot van de routes in de browser (of in een tool zoals Postman / Thunder Client)
+  - Een console-app die een externe API aanroept met HttpClient
+  - Minstens één C#-class die overeenkomt met de JSON van die API
+  - Screenshot van de console met de opgehaalde en gedeserialiseerde gegevens
 criteria:
   - id: w6h1
-    text: De server start met HttpListener op een ingestelde poort en blijft draaien (lus rond GetContext)
-    points: 3
+    text: Main is async (async Task Main) en HttpClient wordt correct gebruikt
+    points: 2
   - id: w6h2
-    text: Er is een route GET /voertuigen die een JSON-lijst teruggeeft
-    points: 3
+    text: Het JSON-antwoord wordt als string opgehaald met ReadAsStringAsync
+    points: 2
   - id: w6h3
-    text: Er is een route GET /voertuigen/{id} die één voertuig teruggeeft (id uit de URL gehaald)
+    text: Er is een class die de structuur van de JSON weerspiegelt (juiste types)
     points: 3
   - id: w6h4
-    text: Onbekende routes geven een net antwoord (bijv. status 404 of een JSON-foutmelding)
-    points: 2
+    text: De JSON wordt gedeserialiseerd met JsonSerializer.Deserialize en PropertyNameCaseInsensitive
+    points: 3
   - id: w6h5
-    text: Het antwoord wordt correct omgezet naar bytes, ContentLength64 gezet en de OutputStream gesloten
+    text: Minstens één genest object of lijst uit de JSON wordt correct uitgelezen
     points: 1
   - id: w6h6
-    text: De Content-Type van het antwoord staat op application/json
+    text: Ongeldige of lege antwoorden geven een nette melding
     points: 1
 tips:
-  - Voor nu mag je de voertuigenlijst nog hardcoderen (bijv. een `List<Voertuig>` in het geheugen). In week 7 koppel je EF Core.
-  - Gebruik `JsonSerializer.Serialize(lijst)` om je objecten naar JSON-tekst om te zetten.
-  - Zet een `while (true)`-lus om `listener.GetContext()` zodat de server meerdere verzoeken kan afhandelen.
+  - Kun je niet bij een RDW-API? Gebruik PokéAPI of jsonplaceholder.typicode.com — het gaat om de techniek.
+  - Bekijk eerst de JSON in je browser (broncode) en teken de class-structuur op papier.
+  - Test met één vast kenteken/id voordat je gebruikersinvoer toevoegt.
 ---
 
-De Sleutel wil dat straks meerdere apps (de balie, een klantwebsite, misschien een mobiele app) dezelfde gegevens kunnen gebruiken. Daarvoor bouw je nu zelf een kleine API-server: een console-app die op een poort luistert en op verzoeken antwoordt met JSON.
+De Sleutel wil bij het invoeren van een nieuw voertuig niet meer alles met de hand typen. Als de baliemedewerker een kenteken invoert, moeten merk en type automatisch worden opgehaald uit een externe bron. Zo'n bron is een API.
 
-Bouw met `HttpListener` een webserver die luistert op bijvoorbeeld `http://localhost:8080/`. Handel minstens drie routes af: `GET /voertuigen` (alle voertuigen als JSON-lijst), `GET /voertuigen/{id}` (één voertuig, waarbij je het id uit `request.Url.Segments` of `AbsolutePath` haalt), en een nette afhandeling voor onbekende routes. De voertuigenlijst mag je voor nu nog hardcoderen. Zet je antwoord om naar bytes, stel `ContentLength64` en de `Content-Type` (`application/json`) in en sluit de `OutputStream`.
+Bouw een console-app die met `HttpClient` een externe API aanroept (bijvoorbeeld de open voertuig-API van de RDW, PokéAPI, of `jsonplaceholder.typicode.com`). Haal het JSON-antwoord op als string, maak een C#-class (of meerdere) die overeenkomt met de structuur van die JSON, en deserialiseer het antwoord naar een object met `PropertyNameCaseInsensitive = true`. Lees minstens één genest veld of lijst uit en print een paar velden netjes in de console. Zorg dat de app niet crasht als de API niets of iets onverwachts teruggeeft.
 
 ## Inleveren
 
-Lever je project (als `.zip`, zonder `bin/` en `obj/`) met de screenshots in via **Itslearning**, onder de map "Module: Native (C#)".
+Lever je project (als `.zip`, zonder `bin/` en `obj/`) met de screenshot in via **Itslearning**, onder de map "Module: Native (C#)".

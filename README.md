@@ -37,7 +37,7 @@ vinden op SmartPoints. Deze cijfers worden gegeven voor een toets of een CGI.
 Inleveropdrachten lever je in via **Itslearning**, onder de map
 "Module: Native (C#)". Je docent geeft daar feedback.
 
-### Opbouw (7 weken)
+### Opbouw (8 weken)
 
 | Week | Onderwerp |
 | ---- | --------- |
@@ -45,12 +45,13 @@ Inleveropdrachten lever je in via **Itslearning**, onder de map
 | 2 | Accessibility & static — public, private, internal, protected, static |
 | 3 | EF Core — opzet & model — packages, migrations, DbContext, DbSet |
 | 4 | EF Core — CRUD in een console-app — invoeren, ophalen, wijzigen, verwijderen |
-| 5 | API — concept & consumeren — HttpClient, JSON, deserialiseren |
-| 6 | API — zelf bouwen — HttpListener, request/response, routing |
-| 7 | API + EF Core — data serveren & valideren — validatie, Data Annotations, regex |
+| 5 | CRUD in een WinUI-applicatie — EF Core, seeding, ListView, CRUD |
+| 6 | API — concept & consumeren — HttpClient, JSON, deserialiseren |
+| 7 | API — zelf bouwen — HttpListener, request/response, routing |
+| 8 | API + EF Core — data serveren & valideren — validatie, Data Annotations, regex |
 
 De weken 13 t/m 16 uit de oorspronkelijke studiewijzer zijn buffer- en
-toetsweken: het project uit week 7 is de basis voor de eindopdracht.
+toetsweken: het project uit week 8 is de basis voor de eindopdracht.
 
 ## Lokaal draaien
 
@@ -97,4 +98,5 @@ naar GitHub Pages. Zorg dat in de repo-instellingen
 | 1.1 | 28-08-2025 | T. Lutt | Versienummer EF Core-packages gekoppeld aan versie .NET |
 | 1.2 | 04-11-2025 | T. Lutt | Hoofdstuk API + EF Core met uitleg over validatie toegevoegd |
 | 1.3 | 31-08-2026 | N. Pieter | Tekst over relaties verwijderd uit H3 EF Core en tekst over ORM toegevoegd |
-| e-module | 09-2026 | — | Moduleboekje v1.3 herschreven naar week-gebaseerde e-module (7 weken) |
+| e-module | 09-2026 | — | Moduleboekje v1.3 herschreven naar week-gebaseerde e-module |
+| e-module | 09-2026 | N. Pieter | Week "CRUD in een WinUI-applicatie" toegevoegd (nu 8 weken) |

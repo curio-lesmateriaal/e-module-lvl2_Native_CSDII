@@ -96,35 +96,30 @@ foreach (var blog in context.Blogs)
 
 ## 4.3 Gegevens updaten
 
-Het bewerken van gegevens gaat volgens de volgende stappen:
+Bijwerken gaat in drie stappen:
 
-1. Haal gegevens op uit een Database Context — je krijgt instanties van modellen.
-2. Wijzig de gegevens door de instanties aan te passen.
-3. Roep `SaveChanges` aan op **dezelfde** Database Context als waar de gegevens zijn uitgehaald. Dankzij Change Tracking weet Entity Framework hoe de `UPDATE`-query opgebouwd moet worden.
+1. Haal het object op uit de Database Context (`Single`, `First` of `FirstOrDefault`).
+2. Pas de property('s) aan.
+3. Roep `SaveChanges` aan op **dezelfde** context als waar je het object hebt opgehaald.
 
-Je kunt voorbeeldcode vinden in de documentatie van Microsoft: <https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating?tabs=ef7>. Daar kun je ook vinden hoe je efficiëntere updates kunt uitvoeren, bijvoorbeeld door **Batching**. Met Batching minimaliseert EF het aantal 'roundtrips' door automatisch alle updates samen te voegen in één roundtrip.
+```csharp
+using (var db = new AppDbContext())
+{
+    var blog = db.Blogs.Single(b => b.Url == "http://someblog.microsoft.com");
+    blog.Url = "http://someotherblog.microsoft.com";
+    db.SaveChanges();
+}
+```
+
+Je roept dus géén `Update`-methode aan. Dankzij **Change Tracking** onthoudt EF Core welke opgehaalde objecten je hebt gewijzigd en bouwt het bij `SaveChanges` automatisch de juiste `UPDATE`-query. Dat werkt alleen als je opvraagt én opslaat op dezelfde context-instantie.
+
+Heb je in één keer meerdere wijzigingen (bijvoorbeeld één `UPDATE` en twee `INSERT`s)? Dan stuurt EF Core die bij `SaveChanges` gebundeld naar de database in zo min mogelijk **roundtrips**, in plaats van één voor één. Dit heet *batching*.
 
 <x-callout type="info">
 
-**Roundtrip.** Verwijst naar het proces waarbij gegevens van een client naar een server worden verzonden en vervolgens het antwoord van de server terug naar de client wordt ontvangen. Het omvat het heen en weer gaan van gegevens tussen de client en de server.
+**Roundtrip.** Het heen en weer sturen van gegevens tussen client en server: een verzoek naar de database en het antwoord terug.
 
 </x-callout>
-
-Neem het volgende in overweging:
-
-```csharp
-var blog = context.Blogs.Single(b => b.Url == "http://someblog.microsoft.com");
-blog.Url = "http://someotherblog.microsoft.com";
-context.Add(new Blog { Url = "http://newblog1.microsoft.com" });
-context.Add(new Blog { Url = "http://newblog2.microsoft.com" });
-context.SaveChanges();
-```
-
-Bovenstaande code laadt een blog uit de database (je kunt in plaats van de `Single`-methode ook `First` of `FirstOrDefault` gebruiken), wijzigt de URL en voegt vervolgens twee nieuwe blogs toe. Om dit toe te passen, worden er twee SQL `INSERT`-opdrachten en één `UPDATE`-opdracht naar de database gestuurd. In plaats van ze één voor één te verzenden wanneer de `Blog`-instanties worden toegevoegd, houdt EF deze wijzigingen intern bij en voert ze uit in één roundtrip wanneer `SaveChanges` wordt aangeroepen.
-
-Het aantal opdrachten dat EF bundelt in één roundtrip hangt af van de gebruikte databaseprovider. Bijvoorbeeld, uit prestatieanalyse is gebleken dat batching over het algemeen minder efficiënt is voor (Microsoft) SQL Server wanneer er minder dan 4 opdrachten zijn. Op vergelijkbare wijze verminderen de voordelen van batching na ongeveer 40 opdrachten voor SQL Server. Daarom zal EF standaard slechts maximaal 42 opdrachten in één batch uitvoeren en aanvullende opdrachten in afzonderlijke roundtrips uitvoeren.
-
-Bron: <https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating?tabs=ef7>
 
 <x-keuzevraag>
 question: Je haalt een klant op met context A, past de naam aan, en roept SaveChanges aan op context B. Wat gebeurt er?
@@ -139,22 +134,20 @@ explanation: SaveChanges werkt alleen voor wijzigingen die dezelfde context bijh
 
 ## 4.4 Gegevens verwijderen
 
-Het verwijderen van gegevens ziet er bijvoorbeeld zo uit:
+Verwijderen ziet er zo uit:
 
 ```csharp
 using (var db = new AppDbContext())
 {
-    var chat = db.Chats.Single(b => b.Name == "Chatroom 1");
+    var chat = db.Chats.Single(c => c.Name == "Chatroom 1");
     db.Chats.Remove(chat);
     db.SaveChanges();
 }
 ```
 
-Zorg (net als bij Update) dat je `SaveChanges` aanroept op dezelfde database context als waar de verwijderde gegevens worden opgehaald. Alleen dan kan de Change Tracker van Entity Framework bijhouden welke gegevens zijn verwijderd.
+Ook hier: roep `SaveChanges` aan op dezelfde context als waar je het object ophaalde, zodat de Change Tracker weet wat er verwijderd moet worden.
 
-Wanneer je gegevens verwijdert die een relatie hebben met een andere entiteit, moet je ook die gegevens verwijderen, of de relatie verbreken. Anders krijg je (op andere plekken) foutmeldingen, omdat er nog afhankelijke gegevens bestaan, maar die dan niet meer bij de verwijderde data kunnen.
-
-Om op een snelle manier bijbehorende gegevens te verwijderen of ontkoppelen maak je gebruik van 'Cascade Delete': <https://learn.microsoft.com/en-us/ef/core/saving/cascade-delete>
+Verwijder je een object waar nog andere gegevens naar verwijzen? Dan moet je die afhankelijke gegevens mee verwijderen of de relatie verbreken, anders krijg je foutmeldingen. **Cascade Delete** doet dat automatisch: <https://learn.microsoft.com/en-us/ef/core/saving/cascade-delete>
 
 <x-invul>
 prompt: Vul de code aan die klant "Jansen" uit de database verwijdert.
@@ -177,6 +170,5 @@ explanation: "Remove markeert het object als verwijderd; SaveChanges voert de DE
 <x-nav label="Klaar met de theorie?">
 [Oefeningen](/pages/week4-oefeningen.html)
 [Quiz](/pages/week4-meetmoment.html)
-[Inleveropdracht](/pages/week4-inleveropdracht.html)
 [Week 5](/pages/week5-theorie.html)
 </x-nav>
