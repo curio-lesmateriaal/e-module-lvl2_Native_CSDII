@@ -1,309 +1,222 @@
 ---
 week: 8
-title: API + EF Core — data serveren & valideren
-goal: je kunt je zelfgebouwde API de echte databasegegevens laten teruggeven via EF Core en je kunt binnenkomende gegevens valideren met if-statements en Data Annotations
-accent: slate
-summary: "De laatste stap: je API haalt geen hardcoded lijst meer op maar echte data uit de database via de DbContext. Daarnaast leer je invoer valideren — met simpele if-statements, met Data Annotations en met reguliere expressies."
+title: API — uitlezen (consumeren)
+goal: je kunt in C# een API aanroepen met HttpClient en het JSON-antwoord deserialiseren naar objecten, ook met lijsten en geneste objecten
+accent: blue
+summary: "Je weet nu wat een API is. Deze week ga je er één consumeren: met HttpClient haal je JSON op, en met JsonSerializer zet je die om naar C#-objecten. Je leert hoe JSON is opgebouwd (arrays, geneste objecten) en hoe je een tijdelijke nep-API opzet om je client te testen."
 leeruitkomsten:
-  - Ik kan in een API-endpoint gegevens ophalen uit de database met EF Core
-  - Ik kan een POST-verzoek uitlezen, de JSON deserialiseren en opslaan met SaveChanges
-  - Ik kan invoer valideren met if-statements
-  - Ik kan invoer valideren met Data Annotations en Validator.TryValidateObject
-  - Ik kan een [RegularExpression] schrijven en een eenvoudige regex lezen
+  - Ik kan met HttpClient een API aanroepen in een async methode
+  - Ik kan de opbouw van een JSON-object lezen (eigenschappen, waarden, arrays, geneste objecten)
+  - Ik kan JSON deserialiseren naar een C#-class, ook met lijsten en geneste objecten
+  - Ik kan een tijdelijke nep-API (mock) opzetten om mijn client te testen
 ---
 
-## API-data aanleveren vanuit EF Core
+## 8.1 Een API aanroepen
 
-Met de 'Read' in 'CRUD' zijn we inmiddels goed bekend: we weten dat we in Entity Framework gegevens kunnen ophalen via een `DbSet` in een Database Context. In week 7 gaf je API nog een hardcoded lijst terug. Nu vervangen we die door echte databasegegevens.
+Wanneer een client-applicatie een API gebruikt noemen we dat 'consumeren' (Engels: *to consume*). Het aanroepen van een API is simpelweg het laden van een bijzondere webpagina. Laten we eens kijken naar een voorbeeld: **PokéAPI** (<https://pokeapi.co/>).
 
-In je route-afhandeling open je gewoon een context, net als in de console-app van week 4:
+![Het logo van PokéAPI](./assets/pokeapi-logo.png)
 
-```csharp
-if (pad == "/voertuigen")
-{
-    using var db = new DeSleutelContext();
-    List<Voertuig> voertuigen = db.Voertuigen.ToList();
+In onze lessen gebruiken we graag PokéAPI omdat het een gratis toegankelijke API is, waar geen bijzonderheden zijn qua authenticatie. Waar je bij de meeste API's moet registreren, kunnen we hier direct bij allerlei gegevens uit de Pokémon-games.
 
-    string json = JsonSerializer.Serialize(voertuigen);
-    // ... omzetten naar bytes en versturen
-}
-```
+Neem bijvoorbeeld deze API-route: <https://pokeapi.co/api/v2/pokemon/ditto>
 
-Voor één voertuig combineer je het uitlezen van het id uit de URL (week 7) met een query op de database:
+Wanneer je deze in de browser bezoekt, zie je de volgende JSON:
 
-```csharp
-using var db = new DeSleutelContext();
-Voertuig? voertuig = db.Voertuigen.FirstOrDefault(v => v.Id == id);
-
-if (voertuig == null)
-{
-    context.Response.StatusCode = 404;
-    // stuur een JSON-foutmelding
-}
-else
-{
-    string json = JsonSerializer.Serialize(voertuig);
-    // stuur het voertuig
-}
-```
-
-Een POST-verzoek (nieuw voertuig toevoegen) lees je uit via de `InputStream` van de request:
-
-```csharp
-if (context.Request.HttpMethod == "POST" && pad == "/voertuigen")
-{
-    using var reader = new StreamReader(context.Request.InputStream);
-    string body = reader.ReadToEnd();
-
-    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-    Voertuig? nieuw = JsonSerializer.Deserialize<Voertuig>(body, options);
-
-    using var db = new DeSleutelContext();
-    db.Voertuigen.Add(nieuw);
-    db.SaveChanges();
-}
-```
+![Een browservenster op pokeapi.co/api/v2/pokemon/ditto met een grote hoeveelheid platte JSON-tekst](./assets/browser-json-ditto.png)
 
 <x-callout type="tip">
 
-Je API is nu de brug tussen de client en de database, precies zoals bij "moderne systemen" in week 6: de client praat met de API, de API praat met de database.
+Sommige browsers stijlen JSON met extra opmaak en functies. Open de broncode van de pagina om te zien wat de API daadwerkelijk teruggeeft (alleen tekst).
 
 </x-callout>
 
-## 5.2 Invoer valideren
-
-Om een degelijke applicatie te maken, moeten we nog wel de invoer van de gebruiker controleren. Dat noemen we **validatie** (Engels: *validation*).
-
-Er zijn meerdere manieren om invoer te valideren; in dit moduleboek bespreken we er twee:
-
-1. **If-statements:** controleer met simpele if-statements of de invoer aan voorwaarden voldoet.
-2. **Data Annotations:** met 'attributen' uit de ingebouwde package `System.ComponentModel.DataAnnotations` leggen we voorwaarden voor invoer vast.
-
-Hier betekent het Engelse woord "Annotations": annotaties. Ook wel: aanmerking, aantekening of kanttekening. Met C#-attributes kunnen we extra informatie bij onder andere classes, methodes en eigenschappen plaatsen.
+Om een API te consumeren in C# gebruiken we de `HttpClient`-klasse. Dat geeft ons een soort onzichtbare browser waarmee we webverzoeken kunnen doen:
 
 ```csharp
-public class User
-{
-    [Required]
-    [MaxLength(50)]
-    public string Name { get; set; }
-
-    [Range(1, 120)]
-    public int Age { get; set; }
-}
+var client = new HttpClient();
+var response = await client.GetAsync("https://pokeapi.co/api/v2/pokemon/ditto");
+var content = await response.Content.ReadAsStringAsync();
 ```
 
-We demonstreren de twee manieren aan de hand van een simpele applicatie met een naam-invoerveld (`nameTextBox`), een leeftijd-invoerveld (`ageTextBox`), een `Validate`-knop en een leeg tekstveld `validationResultsTextBlock` waarin in het rood een bericht bovenaan het formulier getoond wordt.
-
-![Een klein venster 'TestValidation' met invoervelden Name (Janiek) en Age (0), een Validate-knop en bovenaan in het rood 'The field Age must be between 1 and 120.'](./assets/testvalidation-app.png)
-
-<x-callout type="note">
-
-In dit voorbeeld is het een knop in een venster, maar dezelfde validatiecode werkt net zo goed in een console-app of in een API-endpoint — je maakt een object van de ingevoerde gegevens en controleert dat.
-
-</x-callout>
-
-### Valideren met if-statements
+Omdat het doen van een webverzoek lang kan duren zijn enkele methodes hier **asynchroon (Async)**. Om die reden moet de methode waarin dit gebruikt wordt ook asynchroon zijn. Bij een Console App ziet een asynchrone `Main`-signature er zo uit:
 
 ```csharp
-private void validateButton_Click(object sender, RoutedEventArgs e)
-{
-    var user = new User
-    {
-        Name = nameTextBox.Text,
-        Age = int.TryParse(ageTextBox.Text, out var age) ? age : 0
-    };
-
-    var errors = new List<string>();
-
-    if (string.IsNullOrWhiteSpace(user.Name))
-    {
-        errors.Add("The Name field is required.");
-    }
-    else if (user.Name.Length > 50)
-    {
-        errors.Add("The field Name must be a string with a maximum length of 50.");
-    }
-
-    if (user.Age < 1 || user.Age > 120)
-    {
-        errors.Add("The field Age must be between 1 and 120.");
-    }
-
-    if (errors.Count > 0)
-    {
-        validationResultsTextBlock.Text = string.Join(Environment.NewLine, errors);
-    }
-    else
-    {
-        validationResultsTextBlock.Text = "Validation succeeded!";
-    }
-}
+static async Task Main(string[] args)
 ```
 
-### Valideren met Data Annotations
-
-Allereerst staat bovenin het script van de `User`-model en de Window:
-
-```csharp
-using System.ComponentModel.DataAnnotations;
-```
-
-De `User`-model krijgt deze attributen die de data 'annoteren':
-
-```csharp
-public class User
-{
-    [Required]
-    [MaxLength(50)]
-    public string Name { get; set; }
-
-    [Range(1, 120)]
-    public int Age { get; set; }
-}
-```
-
-Bij het klikken op de knop **instantiëren** we een `User` met de ingevoerde gegevens. Vervolgens maken we een `ValidationContext` en roepen we `Validator.TryValidateObject` aan, die aan de hand van de attributen in de `User`-model validatie gaat uitvoeren:
-
-```csharp
-private void validateButton_Click(object sender, RoutedEventArgs e)
-{
-    var user = new User
-    {
-        Name = nameTextBox.Text,
-        Age = int.TryParse(ageTextBox.Text, out var age) ? age : 0
-    };
-
-    var context = new ValidationContext(user);
-    var results = new List<ValidationResult>();
-
-    if (!Validator.TryValidateObject(user, context, results, true))
-    {
-        var errors = new List<string>();
-
-        foreach (var validationResult in results)
-        {
-            errors.Add(validationResult.ErrorMessage);
-        }
-
-        validationResultsTextBlock.Text = string.Join(Environment.NewLine, errors);
-    }
-    else
-    {
-        validationResultsTextBlock.Text = "Validation succeeded!";
-    }
-}
-```
-
-In de documentatie van Microsoft is een lijst te vinden met alle attributen die je bij een eigenschap kunt plaatsen: <https://learn.microsoft.com/en-us/dotnet/api/system.componentmodel.dataannotations>
-
-![Een tabel uit de Microsoft-documentatie met attributen zoals MaxLengthAttribute, MinLengthAttribute, PhoneAttribute, RangeAttribute, RegularExpressionAttribute en RequiredAttribute, elk met een korte omschrijving](./assets/dataannotations-lijst.png)
-
-![Dezelfde documentatietabel met pijlen die MaxLengthAttribute, RangeAttribute en RequiredAttribute koppelen aan een codevoorbeeld met [Required], [MaxLength(50)] en [Range(1, 120)]](./assets/dataannotations-attributen.jpg)
-
-<x-callout type="warning">
-
-C#-attribute-classes zijn bijzonder: je mag bij het gebruiken van de klasse de 'Attribute'-suffix weglaten. Dus je mag zowel `[RequiredAttribute]` als `[Required]` schrijven, beide zijn valide.
-
-</x-callout>
+Na de bovenstaande code staat in de `content`-variabele de JSON van de Pokémon genaamd "ditto". Dat JSON-object bevat allerlei informatie die we mogelijk willen ophalen, zoals bijvoorbeeld de id, naam en het gewicht van de Pokémon. Om die gegevens op te halen moeten we in C# een klasse maken die overeenkomt met de JSON:
 
 <x-compare>
-<x-compare-item title="If-statements">
+<x-compare-item title="JSON">
 
-- Volledige controle, geen extra kennis nodig
-- Wordt al snel lang en repetitief bij veel velden
-- De regel en de melding staan in je methode, niet bij het model
+```json
+{
+  "id": 132,
+  "name": "ditto",
+  "weight": 40
+}
+```
 
 </x-compare-item>
-<x-compare-item title="Data Annotations">
+<x-compare-item title="Klasse die overeenkomt met JSON">
 
-- Kort: de regels staan als attributen bij het model
-- Herbruikbaar: overal waar je het model valideert gelden dezelfde regels
-- Je hebt `Validator.TryValidateObject` één keer nodig
+```csharp
+internal class Pokemon
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Weight { get; set; }
+}
+```
 
 </x-compare-item>
 </x-compare>
 
-## 5.3 Validatie met [RegularExpression]
-
-De `[RegularExpression]`-attribuut in C# (meestal gebruikt in combinatie met data-annotaties) valideert of een string overeenkomt met een bepaald **patroon**. Dit patroon wordt geschreven in een **Regular Expression** (regex).
-
-**Gebruik:**
+Vervolgens kunnen we de JSON 'deserialiseren' naar een C#-object. Met deserialiseren bedoelen we: van tekst naar een object. Serialiseren is het tegenovergestelde: van een object naar tekst. Deserialiseren gaat als volgt:
 
 ```csharp
-[RegularExpression(@"^[0-9]{4}[A-Z]{2}$", ErrorMessage = "Postcode moet 4 cijfers gevolgd door 2 hoofdletters zijn.")]
-public string Postcode { get; set; }
+var options = new JsonSerializerOptions
+{
+    PropertyNameCaseInsensitive = true
+};
+
+var pokemon = JsonSerializer.Deserialize<Pokemon>(content, options);
+
+Console.WriteLine("Gedeserialiseerde gegevens:");
+Console.WriteLine(pokemon.Id);
+Console.WriteLine(pokemon.Name);
 ```
 
-In dit voorbeeld valideert het attribuut of de postcode voldoet aan het formaat `1234AB`.
+<x-callout type="note">
 
-### Wat is Regular Expression?
+De functie om te (de)serialiseren werkt dankzij `using System.Text.Json;`
 
-Een regex is een **tekstpatroon** waarmee je kunt controleren of een string aan bepaalde eisen voldoet. Regex is niet alleen onderdeel van C#, maar bestaat ook in veel andere talen zoals: JavaScript, Python, Java, PHP, Ruby, Perl en zelfs in text editors zoals VS Code en Notepad++.
+</x-callout>
 
-### Voorbeelden met uitleg per teken
+We geven aan de generieke methode `JsonSerializer.Deserialize<T>` het type van de klasse op de plek `T`. Zo weet de serializer welke eigenschappen er in de JSON verwacht kunnen worden. Omdat we de C#-conventies voor eigenschappen willen aanhouden (PascalCase), maar in de JSON "id", "name" en "weight" zonder hoofdletters zijn geschreven, zetten we met een optie hoofdletterongevoeligheid aan:
 
-**Nederlandse postcode:** `^[0-9]{4}[A-Z]{2}$`
-
-- `^` — begin van de string
-- `[0-9]{4}` — precies 4 cijfers:
-  - `[` — start set
-  - `0-9` — de cijfers 0 t/m 9
-  - `]` — eind set
-  - `{` — start herhalingsinformatie, herhaalt wat hiervoor stond (de set) zo veel keer
-  - `4` — precies 4 keer
-  - `}` — eind herhalingsinformatie
-- `[A-Z]{2}` — precies 2 hoofdletters
-  - `A-Z` — de letters A t/m Z (in hoofdletters)
-- `$` — einde van de string
-
-Voorbeeld geldig: `1234AB` — Ongeldig: `123AB`, `1234ab`, `12 34AB`
-
-Nu schrijven sommige mensen hun postcode wel eens met een spatie tussen de cijfers en letters. We zouden de regex als volgt kunnen aanpassen om ook een spatie toe te staan: `^[0-9]{4}\s?[A-Z]{2}$`
-
-In deze aangepaste regex betekent `\s?` dat op die plek een spatie of ander witruimte-teken (`\s`) optioneel (`?`) is. Nu ook geldig: `1234 AB`
-
-**Telefoonnummer (NL mobiel):** `^06\d{8}$`
-
-- `^` — begin van de string
-- `06` — moet beginnen met 06
-- `\d{8}` — precies 8 cijfers, `\d` = cijfer
-- `$` — einde van de string
-
-Voorbeeld geldig: `0612345678` — Ongeldig: `0712345678`, `06-12345678`
-
-Je kunt Regular Expression dus gebruiken om complexere validatieregels te schrijven. Via deze website kun je jouw regex testen en uitleg vinden over de overige tekens: <https://regex101.com/>
-
-![Screenshot van regex101.com met de regex ^[0-9]{4}\s?[A-Z]{2}$, een lijst teststrings waarvan 4813 AB en 1212AB matchen (groen omcirkeld) en 222BA, test en 2112 aa niet (rood kruis). Links is de flavor '.NET 7.0 (C#)' geselecteerd.](./assets/regex101.png)
+```csharp
+var options = new JsonSerializerOptions
+{
+    PropertyNameCaseInsensitive = true
+};
+```
 
 <x-invul>
-prompt: Vul de regex aan die precies 4 cijfers, dan precies 2 hoofdletters vereist (postcode zonder spatie).
+prompt: Vul de regel aan die de JSON in `content` omzet naar een Pokemon-object (met de options voor hoofdletterongevoeligheid).
 code: |-
-  ^[0-9]___[A-Z]___$
+  var pokemon = JsonSerializer.___<___>(content, options);
 blanks:
-  - answer: "{4}"
-  - answer: "{2}"
-explanation: "{4} en {2} geven aan hoe vaak de set ervoor herhaald moet worden."
+  - answer: Deserialize
+  - answer: Pokemon
+explanation: "Deserialize<T> zet tekst om naar een object van type T."
 </x-invul>
 
-<x-vind-de-fout>
-code: |-
-  public class Klant
-  {
-      [Required]
-      public string Naam { get; set; }
+## 8.2 JSON en deserialiseren
 
-      [Range(1, 120)]
-      public string Leeftijd { get; set; }
+JSON staat voor **JavaScript Object Notation** en het is een gestructureerd datatransmissieformaat dat veel wordt gebruikt voor het uitwisselen van gegevens tussen een server en een client. Het is leesbaar voor zowel mensen als computers.
+
+JSON is opgebouwd uit eigenschappen en waarden en gebruikt een structuur die lijkt op een dictionary. Een JSON-object begint met een openingsaccolade `{` en eindigt met een sluitende accolade `}`. Tussen de accolades bevinden zich eigenschap-waarde-paren, gescheiden door een dubbele punt `:`.
+
+Een eigenschap heeft een string-naam en kan een waarde van verschillende typen bevatten, zoals een tekenreeks, een getal, een boolean, een array of zelfs een ander JSON-object.
+
+Hier is een voorbeeld van een JSON-object:
+
+```json
+{
+  "name": "John Doe",
+  "age": 25,
+  "married": false,
+  "hobbies": ["football", "reading", "traveling"],
+  "address": {
+    "street": "Main St",
+    "city": "New York",
+    "state": "NY"
   }
-errorLine: 7
-hint: Kijk naar het type van de property waar [Range] op staat.
-explanation: "[Range(1, 120)] hoort op een getal (int), niet op een string. Maak van Leeftijd een int."
-</x-vind-de-fout>
+}
+```
+
+In dit voorbeeld zijn er 5 eigenschappen:
+
+- "name" heeft een string als waarde
+- "age" heeft een getal als waarde
+- De waarde van "married" is van het type boolean
+- "hobbies" heeft een array als waarde. Ieder item in deze array is van het type "string"
+- "address" heeft een JSON-object als waarde, met 3 eigenschappen: "street", "city", "state"
+
+Arrays herken je in JSON aan blokhaken. Daarnaast kun je door 'nesting' JSON-objecten in JSON-objecten hebben, en arrays in arrays of arrays in JSON-objecten.
+
+Wanneer je een JSON-array als "hobbies" wilt deserialiseren geef je de eigenschap het type `List<T>`. Voor "hobbies" is `T` logischerwijs `string`.
+
+Wanneer een eigenschap weer een object is, moet daar een andere klasse voor gemaakt worden. Om de bovenstaande JSON te deserialiseren zijn de volgende klassen nodig:
+
+```csharp
+internal class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public bool Married { get; set; }
+    public List<string> Hobbies { get; set; }
+    public Address Address { get; set; }
+}
+
+internal class Address
+{
+    public string Street { get; set; }
+    public string City { get; set; }
+    public string State { get; set; }
+}
+```
+
+Deserialiseren (weer met hoofdletterongevoeligheid):
+
+```csharp
+var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+var person = JsonSerializer.Deserialize<Person>(personJson, options);
+
+Console.WriteLine($"{person.Name} woont in {person.Address.City}");
+```
+
+Soms is de JSON zelf een array. Dan geef je `Deserialize<T>` direct een `List` met passend type:
+
+```csharp
+var arrayJson = "[3, 4, 5]";
+var numbers = JsonSerializer.Deserialize<List<int>>(arrayJson);
+
+Console.WriteLine(numbers[1]); // 4
+```
+
+Als je geen van de `List`-methodes nodig hebt, werkt een array ook als type: `JsonSerializer.Deserialize<int[]>(arrayJson)`.
+
+## 8.3 Een test-API
+
+Wanneer je een client wilt bouwen, maar nog geen API hebt, zet je een tijdelijke **nep-API** op. Zo'n nep-API geeft simpelweg JSON als antwoord, zonder database erachter. We noemen dat 'mocking'. Twee manieren:
+
+1. Een simpel PHP-script dat JSON teruggeeft:
+
+   ```php
+   <?php
+   echo '['
+       . '{"id":1,"name":"Curio","postalCode":"1234AB"},'
+       . '{"id":2,"name":"Hizmet","postalCode":"4814AA"}'
+       . ']';
+   ```
+
+2. Een online tool voor mock-data:
+   1. <https://mocki.io/fake-json-api>
+   2. <https://jsonplaceholder.typicode.com/>
+   3. <https://mockend.com/>
+   4. <https://mockapi.io/>
+
+Zet je optie 1 via Laragon als `test.php` beschikbaar, dan krijg je een nep-API-route `http://localhost/test.php`:
+
+![Een browser op localhost/test.php met de JSON-uitvoer van het PHP-script](./assets/localhost-test-php.png)
+
+Die route kun je in C# gebruiken om je client te testen.
 
 <x-nav label="Klaar met de theorie?">
 [Oefeningen](/pages/week8-oefeningen.html)
 [Quiz](/pages/week8-meetmoment.html)
-[Inleveropdracht](/pages/week8-inleveropdracht.html)
-[Checklist](/pages/checklist.html)
+[Week 9](/pages/week9-theorie.html)
 </x-nav>

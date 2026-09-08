@@ -1,78 +1,78 @@
 ---
 week: 7
-title: Quiz Week 7 — API zelf bouwen
+title: Quiz Week 7 — API concept
 passScore: 70
 questions:
   - id: w7q1
-    question: Uit welke drie lagen bestaat een webapp meestal?
+    question: Waar staat API voor?
     options:
-      - Database, backend, front-end
-      - HTML, CSS, JavaScript
-      - Client, router, switch
-      - Model, view, controller
-    correct: 0
-    explanation: Database (gegevens), backend (het brein), front-end (wat de gebruiker ziet).
-  - id: w7q2
-    question: Waar draait de backend-code van een webapp?
-    options:
-      - In de browser
-      - In de database
-      - Op de server
-      - Op de computer van de gebruiker
-    correct: 2
-    explanation: Alleen de front-end (HTML/CSS of JSON) komt bij de gebruiker terecht.
-  - id: w7q3
-    question: Wat betekent het dat HTTP 'stateless' is?
-    options:
-      - Er is geen internetverbinding nodig
-      - Er kan maar één gebruiker tegelijk zijn
-      - De server slaat niets op in de database
-      - De server onthoudt tussen twee requests niet dat jij dezelfde persoon bent
-    correct: 3
-    explanation: Elke request staat op zichzelf; technieken die wél onthouden wie je bent heten stateful.
-  - id: w7q4
-    question: Welke class gebruik je in C# om een eenvoudige webserver te bouwen?
-    options:
-      - HttpListener
-      - HttpClient
-      - WebBrowser
-      - TcpClient
-    correct: 0
-    explanation: HttpClient consumeert API's; HttpListener luistert naar binnenkomende verzoeken.
-  - id: w7q5
-    question: Wat doet listener.GetContext()?
-    options:
-      - Start de server
-      - Stuurt het antwoord
-      - Wacht tot er een verzoek binnenkomt
-      - Sluit de verbinding
-    correct: 2
-    explanation: De methode blokkeert tot er een HTTP-verzoek binnenkomt, net als Console.ReadLine().
-  - id: w7q6
-    question: Waarom zet je je antwoordtekst om naar bytes voordat je het verstuurt?
-    options:
-      - Bytes zijn kleiner
-      - Anders wordt het versleuteld
-      - Dat hoeft niet
-      - Een Stream verstuurt byte-voor-byte; tekst kun je niet zomaar sturen
-    correct: 3
-    explanation: "`Encoding.UTF8.GetBytes(...)` zet de string om; de ontvanger bouwt hem weer op met GetString."
-  - id: w7q7
-    question: "Wat is `request.Url.AbsolutePath` bij een bezoek aan `http://localhost:8080/test`?"
-    options:
-      - "http://localhost:8080/test"
-      - "/test"
-      - "test"
-      - "localhost:8080"
+      - Advanced Programming Instruction
+      - Application Programming Interface
+      - Automatic Page Indexer
+      - Application Process Integration
     correct: 1
-    explanation: AbsolutePath is alleen het pad-gedeelte van de URL.
-  - id: w7q8
-    question: "Wat zit er in `request.Url.Segments` bij `http://localhost:8080/user/1`?"
+    explanation: Een API is een set afspraken waarmee softwaresystemen met elkaar communiceren.
+  - id: w7q2
+    question: Wie is in een API-gesprek meestal de client?
     options:
-      - "Alleen ['user', '1']"
-      - "['localhost', 'user', '1']"
-      - "['/', '/user/', '1']"
-      - "['user/1']"
+      - De database
+      - De applicatie die de API aanroept
+      - De server waarop de API draait
+      - De programmeur
+    correct: 1
+    explanation: De client roept aan; de server draait de API.
+  - id: w7q3
+    question: Wat krijg je meestal terug van een REST API in plaats van HTML/CSS?
+    options:
+      - JSON (of XML)
+      - Een afbeelding
+      - Een SQL-bestand
+      - Een zip
+    correct: 0
+    explanation: Vrijwel elke taal kan JSON omzetten naar objecten in code.
+  - id: w7q4
+    question: "Wat doet het endpoint `GET /surveys/123`?"
+    options:
+      - Voegt enquête 123 toe
+      - Verwijdert enquête 123
+      - Geeft de enquête met id 123 terug
+      - Geeft alle enquêtes terug
     correct: 2
-    explanation: Segments splitst het pad inclusief de slashes; het laatste segment ('1') gebruik je vaak als id.
+    explanation: GET met een id in de route haalt dat ene item op.
+  - id: w7q5
+    question: Welke HTTP-methode gebruik je om nieuwe gegevens toe te voegen?
+    options:
+      - GET
+      - POST
+      - DELETE
+      - HEAD
+    correct: 1
+    explanation: "GET = ophalen, POST = toevoegen, PUT = wijzigen, DELETE = verwijderen."
+  - id: w7q6
+    question: Wat is een 'endpoint'?
+    options:
+      - Het einde van je programma
+      - Een specifieke URL op de server die een bepaalde actie uitvoert
+      - De laatste regel JSON
+      - De databaseverbinding
+    correct: 1
+    explanation: Elke route/endpoint (bijv. /surveys of /surveys/123) koppelt een URL + methode aan een actie.
+  - id: w7q7
+    question: Waarom zetten moderne systemen een API tussen de client en de database?
+    options:
+      - Het is verplicht van Microsoft
+      - Scheiding van verantwoordelijkheden, gestandaardiseerde communicatie en toegangscontrole
+      - Het maakt de database sneller
+      - Zodat je geen JSON hoeft te gebruiken
+    correct: 1
+    explanation: De client praat met de API, de API met de database; de databaselogica en toegangscontrole zitten op één plek.
+  - id: w7q8
+    question: "Twee endpoints hebben dezelfde URL `/books` maar `GET` respectievelijk `POST`. Hoe weet de server wat te doen?"
+    options:
+      - Dat kan niet, URLs moeten uniek zijn
+      - De server kijkt naar de HTTP-methode van het verzoek
+      - Hij kiest willekeurig
+      - De client stuurt een extra parameter mee
+    correct: 1
+    explanation: Route-afhandeling kijkt naar het pad én de methode (GET/POST/…).
 ---

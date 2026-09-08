@@ -1,78 +1,78 @@
 ---
 week: 6
-title: Quiz Week 6 — API concept & consumeren
+title: Quiz Week 6 — WinUI-app 2 (selecteren & CRUD)
 passScore: 70
 questions:
   - id: w6q1
-    question: Waar staat API voor?
+    question: "In de ItemClick-handler doe je <code>Citizen c = (Citizen)e.ClickedItem;</code>. Waarom mag dat?"
     options:
-      - Advanced Programming Instruction
-      - Application Programming Interface
-      - Automatic Page Indexer
-      - Application Process Integration
+      - Omdat e.ClickedItem altijd een Citizen is
+      - Omdat wij de ListView met Citizen-objecten hebben gevuld, dus het geklikte item is er één
+      - Omdat casten nooit fout gaat
+      - Omdat ClickedItem al van het type Citizen is
     correct: 1
-    explanation: Een API is een set afspraken waarmee softwaresystemen met elkaar communiceren.
+    explanation: "e.ClickedItem is van het type object. Omdat jouw ItemsSource een lijst Citizen was, is het geklikte item met zekerheid een Citizen."
   - id: w6q2
-    question: Wie is in een API-gesprek meestal de client?
+    question: Welke twee regels voegen een nieuwe bewoner echt toe aan de database?
     options:
-      - De database
-      - De applicatie die de API aanroept
-      - De server waarop de API draait
-      - De programmeur
-    correct: 1
-    explanation: De client roept aan; de server draait de API.
-  - id: w6q3
-    question: Wat krijg je meestal terug van een REST API in plaats van HTML/CSS?
-    options:
-      - JSON (of XML)
-      - Een afbeelding
-      - Een SQL-bestand
-      - Een zip
+      - "db.Citizens.Add(nieuw); db.SaveChanges();"
+      - "db.Citizens.Add(nieuw);"
+      - "db.Citizens.Find(nieuw); db.SaveChanges();"
+      - "citizenListView.Items.Add(nieuw);"
     correct: 0
-    explanation: Vrijwel elke taal kan JSON omzetten naar objecten in code.
+    explanation: Add zet het object klaar in de context; pas SaveChanges schrijft het echt naar de database. Iets aan de ListView toevoegen verandert de database niet.
+  - id: w6q3
+    question: Je klikt op een bewoner en wilt zijn beroep wijzigen. Wat is de juiste volgorde?
+    options:
+      - Nieuwe Citizen maken met hetzelfde Id en SaveChanges
+      - Bewoner ophalen met Find, de property aanpassen, SaveChanges
+      - De property aanpassen in de ListView en SaveChanges
+      - Remove en daarna Add
+    correct: 1
+    explanation: Haal het bestaande object op met db.Citizens.Find(id), wijzig de property en roep SaveChanges aan — Change Tracking (week 4) herkent de wijziging en maakt de UPDATE.
   - id: w6q4
-    question: "Wat doet het endpoint `GET /surveys/123`?"
+    question: Welke methode markeert een object voor verwijdering?
     options:
-      - Voegt enquête 123 toe
-      - Verwijdert enquête 123
-      - Geeft de enquête met id 123 terug
-      - Geeft alle enquêtes terug
-    correct: 2
-    explanation: GET met een id in de route haalt dat ene item op.
+      - Delete()
+      - Remove()
+      - Clear()
+      - Drop()
+    correct: 1
+    explanation: "db.Citizens.Remove(c); gevolgd door db.SaveChanges(); verwijdert de rij."
   - id: w6q5
-    question: Waarom moet je Main asynchroon maken (`async Task Main`) als je HttpClient gebruikt?
+    question: Waarom roep je na elke wijziging <code>RefreshList()</code> aan?
     options:
-      - Omdat HttpClient alleen in Main werkt
-      - Omdat GetAsync en ReadAsStringAsync asynchroon zijn en je op hun resultaat wacht met await
-      - Omdat een console-app anders niet start
+      - Anders wordt de database niet opgeslagen
+      - Anders ziet de gebruiker het resultaat niet; de ListView toont nog de oude lijst
+      - Anders crasht de app
       - Dat hoeft niet
     correct: 1
-    explanation: Een webverzoek kan lang duren; daarom zijn die methoden async en moet de omliggende methode dat ook zijn.
+    explanation: SaveChanges verandert de database, maar de ListView blijft de oude ItemsSource tonen tot je hem opnieuw vult.
   - id: w6q6
-    question: Wat is deserialiseren?
+    question: Je hebt CRUD werkend, maar na een herstart zijn je toegevoegde bewoners weg. Wat is de oorzaak?
     options:
-      - Van een object naar tekst
-      - Van tekst naar een object
-      - Een object verwijderen
-      - Een object kopiëren
+      - SaveChanges werkt niet
+      - EnsureDeleted() staat nog in je constructor en wist elke start de database
+      - De ListView cachet oude data
+      - Find() verwijdert het object
     correct: 1
-    explanation: Deserialiseren = tekst (JSON) omzetten naar een C#-object. Serialiseren is andersom.
+    explanation: Haal db.Database.EnsureDeleted(); weg en laat alleen EnsureCreated() staan, zodat bestaande data blijft.
   - id: w6q7
-    question: "In de JSON staat `\"name\"` (kleine letter), in C# heet je property `Name`. Wat heb je nodig?"
+    question: Wat doet <code>db.Citizens.Find(selectedCitizen.Id)</code>?
     options:
-      - "JsonSerializerOptions met PropertyNameCaseInsensitive = true"
-      - Je property hernoemen naar name
-      - Niets, het werkt vanzelf
-      - Een tweede class
-    correct: 0
-    explanation: Met die optie matcht de serializer hoofdletterongevoelig.
-  - id: w6q8
-    question: "Welk C#-type gebruik je voor een JSON-array `\"hobbies\": [\"a\", \"b\"]`?"
-    options:
-      - "string"
-      - "List<string> (of string[])"
-      - "int"
-      - Een aparte class Hobbies
+      - Het maakt een nieuw Citizen-object aan
+      - Het haalt de bewoner met dat Id op uit de database (of null)
+      - Het verwijdert de bewoner
+      - Het geeft alle bewoners terug
     correct: 1
-    explanation: Een JSON-array van strings deserialiseer je naar een lijst of array van string.
+    explanation: Find zoekt op de primaire sleutel en geeft dat ene object terug, of null als het niet bestaat.
+  - id: w6q8
+    question: Waarom werkt de CRUD-code voor <code>Building</code> bijna hetzelfde als die voor <code>Citizen</code>?
+    options:
+      - Toeval
+      - Het is één patroon: ophalen → wijzigen → SaveChanges → lijst verversen, ongeacht de klasse
+      - Omdat Building van Citizen erft
+      - Omdat ze in dezelfde ListView staan
+    correct: 1
+    explanation: EF Core werkt via de DbSet<T>; het patroon is voor elk model identiek.
 ---

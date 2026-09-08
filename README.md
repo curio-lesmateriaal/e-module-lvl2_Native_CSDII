@@ -34,10 +34,10 @@ Bij deze module horen een aantal meetmomenten. Je dient voor deze meetmomenten
 samen een gemiddelde boven de 5,5 te hebben. Je gemiddelde en je cijfers zijn te
 vinden op SmartPoints. Deze cijfers worden gegeven voor een toets of een CGI.
 
-Inleveropdrachten lever je in via **Itslearning**, onder de map
+Je werk lever je in via **Itslearning**, onder de map
 "Module: Native (C#)". Je docent geeft daar feedback.
 
-### Opbouw (8 weken)
+### Opbouw (12 weken)
 
 | Week | Onderwerp |
 | ---- | --------- |
@@ -45,13 +45,17 @@ Inleveropdrachten lever je in via **Itslearning**, onder de map
 | 2 | Accessibility & static — public, private, internal, protected, static |
 | 3 | EF Core — opzet & model — packages, migrations, DbContext, DbSet |
 | 4 | EF Core — CRUD in een console-app — invoeren, ophalen, wijzigen, verwijderen |
-| 5 | CRUD in een WinUI-applicatie — EF Core, seeding, ListView, CRUD |
-| 6 | API — concept & consumeren — HttpClient, JSON, deserialiseren |
-| 7 | API — zelf bouwen — HttpListener, request/response, routing |
-| 8 | API + EF Core — data serveren & valideren — validatie, Data Annotations, regex |
+| 5 | EF Core in een WinUI-app — seeden & tonen — EnsureCreated, HasData, ListView |
+| 6 | WinUI-app 2 — selecteren & CRUD — item-click, Create/Update/Delete vanuit de UI |
+| 7 | API — concept — client/server, endpoints, HTTP-methoden |
+| 8 | API — uitlezen (consumeren) — HttpClient, JSON, deserialiseren, test-API |
+| 9 | API — zelf bouwen — HttpListener, request/response, routing |
+| 10 | API — van elkaar uitlezen — een client die je eigen API consumeert (GET + POST) |
+| 11 | API + EF Core — data aanleveren — endpoints backed by de database |
+| 12 | API + EF Core — invoer valideren — if-statements, Data Annotations, regex |
 
 De weken 13 t/m 16 uit de oorspronkelijke studiewijzer zijn buffer- en
-toetsweken: het project uit week 8 is de basis voor de eindopdracht.
+toetsweken: het project uit week 12 is de basis voor de eindopdracht.
 
 ## Lokaal draaien
 
@@ -100,3 +104,4 @@ naar GitHub Pages. Zorg dat in de repo-instellingen
 | 1.3 | 31-08-2026 | N. Pieter | Tekst over relaties verwijderd uit H3 EF Core en tekst over ORM toegevoegd |
 | e-module | 09-2026 | — | Moduleboekje v1.3 herschreven naar week-gebaseerde e-module |
 | e-module | 09-2026 | N. Pieter | Week "CRUD in een WinUI-applicatie" toegevoegd (nu 8 weken) |
+| e-module | 09-2026 | N. Pieter | Stof herverdeeld over 12 lesweken volgens de studiewijzer |

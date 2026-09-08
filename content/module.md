@@ -1,7 +1,7 @@
 ---
 name: Native (in C#)
 subtitle: E-module CSD-II
-weeks: 8
+weeks: 12
 language: nl
 exerciseMode: external
 description: OOP, Entity Framework Core en REST API's bouwen en consumeren in C#.
