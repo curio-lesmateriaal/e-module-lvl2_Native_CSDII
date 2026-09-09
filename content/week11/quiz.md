@@ -1,10 +1,10 @@
 ---
-week: 8
-title: Quiz Week 8 — API + EF Core & validatie
+week: 11
+title: Quiz Week 11 — API + EF Core (data aanleveren)
 passScore: 70
 questions:
-  - id: w8q1
-    question: Hoe geeft je API in week 8 de voertuigenlijst terug?
+  - id: w11q1
+    question: Hoe geeft je API nu de voertuigenlijst terug?
     options:
       - Uit de database via de DbContext (bijv. db.Voertuigen.ToList())
       - Vanuit een hardcoded List in je code
@@ -12,7 +12,7 @@ questions:
       - Rechtstreeks vanuit de browser
     correct: 0
     explanation: "De API is de brug: hij haalt de data met EF Core uit de database en serveert die als JSON."
-  - id: w8q2
+  - id: w11q2
     question: Waar lees je de inhoud (body) van een POST-verzoek uit?
     options:
       - "context.Response.OutputStream"
@@ -21,58 +21,58 @@ questions:
       - "context.Request.InputStream"
     correct: 3
     explanation: De verzonden gegevens komen binnen via de InputStream van de Request.
-  - id: w8q3
-    question: Wat is validatie?
+  - id: w11q3
+    question: Welke methode zet een C#-object (of lijst) om naar JSON-tekst voor je antwoord?
     options:
-      - Het controleren of invoer aan de voorwaarden voldoet
-      - Het versleutelen van gegevens
-      - Het opslaan van gegevens
-      - Het omzetten van JSON naar objecten
-    correct: 0
-    explanation: Validatie controleert of de door de gebruiker aangeleverde gegevens bruikbaar en correct zijn.
-  - id: w8q4
-    question: Welke package bevat de attributen [Required], [MaxLength] en [Range]?
-    options:
-      - "System.Text.Json"
-      - "Microsoft.EntityFrameworkCore"
-      - "System.ComponentModel.DataAnnotations"
-      - "System.Net"
-    correct: 2
-    explanation: Data Annotations zitten in System.ComponentModel.DataAnnotations.
-  - id: w8q5
-    question: Welke methode voert de validatie op basis van Data Annotations uit?
-    options:
-      - "Validator.TryValidateObject"
       - "JsonSerializer.Deserialize"
-      - "context.SaveChanges"
-      - "Regex.IsMatch"
+      - "JsonSerializer.Serialize"
+      - "response.Write"
+      - "ToString"
+    correct: 1
+    explanation: Serialize = object → tekst (voor je response). Deserialize = tekst → object (voor een binnenkomende body).
+  - id: w11q4
+    question: "Je wilt `/voertuigen/7` teruggeven of 404 als 7 niet bestaat. Wat gebruik je?"
+    options:
+      - "db.Voertuigen.ToList()"
+      - "db.Voertuigen.FirstOrDefault(v => v.Id == id) en check op null"
+      - "db.Voertuigen.Add(id)"
+      - "db.Voertuigen.Remove(id)"
+    correct: 1
+    explanation: FirstOrDefault geeft het voertuig of null; is het null, dan zet je StatusCode 404.
+  - id: w11q5
+    question: Met welke twee regels sla je het gedeserialiseerde voertuig op?
+    options:
+      - "db.Voertuigen.Add(nieuw); db.SaveChanges();"
+      - "db.Voertuigen.Add(nieuw);"
+      - "db.SaveChanges();"
+      - "db.Voertuigen.ToList();"
     correct: 0
-    explanation: TryValidateObject vult een lijst met ValidationResults en geeft true/false terug.
-  - id: w8q6
-    question: "Je schrijft `[Required]` in plaats van `[RequiredAttribute]`. Klopt dat?"
+    explanation: Add zet het klaar in de context; SaveChanges schrijft het echt naar de database.
+  - id: w11q6
+    question: Waarom stuur je bij een POST geen <code>Id</code> mee in de JSON?
     options:
-      - Nee, de volledige naam is verplicht
-      - Alleen bij [Range]
-      - Alleen in een console-app
-      - Ja, bij attribute-classes mag je de 'Attribute'-suffix weglaten
-    correct: 3
-    explanation: Beide schrijfwijzen zijn geldig voor C#-attributes.
-  - id: w8q7
-    question: "Wat matcht de regex `^[0-9]{4}[A-Z]{2}$`?"
-    options:
-      - "1234ab"
-      - "1234AB"
-      - "12 34AB"
-      - "AB1234"
+      - Dat mag wel, het maakt niet uit
+      - De database vult het Id zelf in via AUTO_INCREMENT
+      - Id is verboden in JSON
+      - Anders werkt Deserialize niet
     correct: 1
-    explanation: 4 cijfers, dan 2 hoofdletters, niets ervoor of erna — precies het postcodeformaat 1234AB.
-  - id: w8q8
-    question: "Wat betekent `\\s?` in de regex `^[0-9]{4}\\s?[A-Z]{2}$`?"
+    explanation: De client kent het nieuwe Id nog niet; de database bepaalt dat bij het invoegen.
+  - id: w11q7
+    question: Welke HTTP-statuscode hoort bij een geslaagde POST die iets heeft aangemaakt?
     options:
-      - Precies één spatie is verplicht
-      - Een witruimte-teken is op die plek optioneel
-      - Er mogen alleen letters staan
-      - Het is het einde van de string
+      - "200 OK"
+      - "201 Created"
+      - "404 Not Found"
+      - "500 Internal Server Error"
     correct: 1
-    explanation: "`\\s` is witruimte, `?` maakt het optioneel — zo mag de postcode mét of zónder spatie."
+    explanation: "201 Created betekent dat je verzoek is verwerkt en er een nieuwe resource is aangemaakt."
+  - id: w11q8
+    question: Wat is het risico als je de POST-body klakkeloos opslaat?
+    options:
+      - Er is geen risico
+      - Je slaat mogelijk ongeldige of onzinnige gegevens op (leeg kenteken, negatieve prijs)
+      - De database wordt trager
+      - Je API stopt met werken
+    correct: 1
+    explanation: Daarom valideer je de invoer eerst — dat leer je in week 12.
 ---

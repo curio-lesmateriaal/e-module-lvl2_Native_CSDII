@@ -1,5 +1,5 @@
 ---
-week: 8
-title: Week 8 — API + EF Core & validatie
+week: 11
+title: Week 11 — API + EF Core (data aanleveren)
 color: slate
 ---

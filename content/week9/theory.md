@@ -1,5 +1,5 @@
 ---
-week: 7
+week: 9
 title: API — zelf bouwen
 goal: je kunt een eenvoudige webserver in C# bouwen met HttpListener, HTTP-verzoeken beantwoorden met JSON en verschillende routes afhandelen
 accent: rose
@@ -12,13 +12,13 @@ leeruitkomsten:
   - Ik kan met AbsolutePath of Segments verschillende routes afhandelen
 ---
 
-## 4.8 Een API bouwen
+## 9.1 Een API bouwen
 
 Om een API te kunnen aanbieden moeten we een webserver opzetten. Die gaat op verzoeken reageren met JSON-antwoorden.
 
 In Blok B heb jij bij WDV-III en DBS-I geleerd over front-end, back-end en de request/response-cyclus. Laten we de theorie daaruit nog eens kort herhalen.
 
-## 4.9 Front-end / back-end (lagen van een webapp)
+## 9.2 Front-end / back-end (lagen van een webapp)
 
 Het bouwen van een webapp werkt iets anders dan een lokale Windows-applicatie met bijvoorbeeld Python of C#. In die laatste programmeertalen staat je héle programma op de computer van de gebruiker. Alle code (of de gecompileerde versie daarvan) werkt dus eigenlijk lokaal.
 
@@ -40,7 +40,7 @@ Je back-end-programma genereert dus eigenlijk een stuk van de HTML wanneer een g
 
 Daarnaast regelt de backend ook het invoegen, aanpassen en verwijderen van items. Dat gebeurt natuurlijk altijd op aanvraag van een gebruiker. Ook het bouwen van een HTML-pagina gebeurt pas wanneer een gebruiker je site bezoekt. Er gaat altijd een "request" aan vooraf.
 
-## 4.10 Request / response (hoe het internet werkt)
+## 9.3 Request / response (hoe het internet werkt)
 
 Als je een website bezoekt doet je browser dus eigenlijk een request naar de server waar de website staat. Die server antwoordt door de webpagina op te sturen; we noemen dat een response. Het gebruiken van een website levert een hele reeks van die requests en responses op. Iedere link die je aanklikt en ieder formulier dat je verstuurt zorgen voor een nieuw verzoek naar de server.
 
@@ -71,7 +71,7 @@ In onderstaande afbeelding zie je hoe er ook vaak twee cycli op elkaar volgen: e
 
 ![Diagram met twee opeenvolgende request/response-cycli: eerst GET /news/create.php dat een HTML-formulier teruggeeft, daarna POST /backend/newsController.php met de formuliergegevens, dat met een redirect naar index.php antwoordt.](./assets/twee-cycli-diagram.png)
 
-## 4.11 Wat je nodig hebt om in C# een eigen webserver te schrijven
+## 9.4 Wat je nodig hebt om in C# een eigen webserver te schrijven
 
 Allereerst moet je je ervan bewust zijn dat we onze webserver als Console App gaan bouwen. Dit doen we om onze applicatie zo efficiënt mogelijk te houden. We hoeven geen mooie interface voor de webserver zelf. De administrator die de webserver aanzet, zal simpelweg instellen dat de webserver-console-app bij het opstarten van de server opstart.
 
@@ -128,7 +128,7 @@ Als de ontvanger aan de andere kant van de Stream-tunnel de gegevens gaat lezen,
 string textAgain = System.Text.Encoding.UTF8.GetString(buffer);
 ```
 
-## 4.12 Routes in een webapplicatie
+## 9.5 Routes in een webapplicatie
 
 Routing in een webserver houdt in dat verschillende URL's worden gekoppeld aan bepaalde acties of antwoorden. Een webserver kan de URL-structuur van een verzoek gebruiken om te bepalen welke actie of pagina aan de gebruiker moet worden teruggestuurd. Bijvoorbeeld, bij het bezoeken van "/hello" kan de server een groet tonen, en bij "/goodbye" een afscheid.
 
@@ -184,7 +184,7 @@ explanation: Net als Console.ReadLine() blijft de code op deze regel wachten tot
 </x-keuzevraag>
 
 <x-nav label="Klaar met de theorie?">
-[Oefeningen](/pages/week7-oefeningen.html)
-[Quiz](/pages/week7-meetmoment.html)
-[Week 8](/pages/week8-theorie.html)
+[Oefeningen](/pages/week9-oefeningen.html)
+[Quiz](/pages/week9-meetmoment.html)
+[Week 10](/pages/week10-theorie.html)
 </x-nav>
