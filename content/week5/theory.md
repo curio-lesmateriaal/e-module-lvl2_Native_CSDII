@@ -1,13 +1,15 @@
 ---
 week: 5
 title: EF Core in een WinUI-app — seeden & tonen
-goal: je kunt in een WinUI 3-app de database bouwen en seeden met EnsureCreated en HasData, en de inhoud tonen in een ListView
+goal: je kunt in een WinUI 3-app de database bouwen en seeden met EnsureCreated en HasData, de inhoud tonen in een ListView, met een Frame en Navigate tussen Pages wisselen en met een knop iets aan de database toevoegen
 accent: teal
-summary: "Je kent EF Core al uit week 3 en 4. Deze week gebruik je dezelfde DbContext in een WinUI 3-desktop-app: je bouwt en seedt de database met EnsureCreated en HasData en toont de gegevens in een ListView. Volgende week maak je de app interactief (selecteren en CRUD)."
+summary: "Je kent EF Core al uit week 3 en 4. Deze week gebruik je dezelfde DbContext in een WinUI 3-desktop-app: je bouwt en seedt de database met EnsureCreated en HasData en toont de gegevens in een ListView. Daarna leer je met een Frame en Navigate tussen Pages wisselen, en koppel je een knop die met Add en SaveChanges iets nieuws aan de database toevoegt. Volgende week maak je de app nóg interactiever (selecteren, wijzigen en verwijderen)."
 leeruitkomsten:
   - Ik ken het verschil tussen EnsureCreated/EnsureDeleted en migrations en weet wanneer ik wat gebruik
   - Ik kan de database seeden met HasData in OnModelCreating
   - Ik kan een lijst objecten uit de database tonen in een ListView
+  - Ik kan met een Frame en Navigate tussen Pages wisselen
+  - Ik kan een knop koppelen die met Add en SaveChanges een nieuw object opslaat
 ---
 
 ## 5.1 Inleiding
@@ -123,6 +125,91 @@ blanks:
   - answer: ToList
 explanation: "Met `ToList()` haal je de rijen meteen op als een echte lijst; die kan de ListView tonen, ook nadat de DbContext is gesloten."
 </x-invul>
+
+## 5.5 Werken met meerdere Pages: Frame en Navigate
+
+Tot nu toe staat alles in één `MainWindow`: de `ListView`, de knoppen, alles. Een WinUI 3-app kan ook uit meerdere **Pages** bestaan die je binnen hetzelfde venster in- en uitwisselt — bijvoorbeeld een overzichtspagina met de lijst, en een aparte pagina om een nieuwe bewoner toe te voegen.
+
+Een `Page` voeg je toe via *rechtsklik op je project → Add → New Item → Blank Page*. Noem 'm bijvoorbeeld `AddCitizenPage`.
+
+Om Pages te kunnen tonen, zet je in `MainWindow.xaml` een `Frame`: een soort "venster binnen het venster" waarin steeds één Page zichtbaar is.
+
+```xml
+<Frame x:Name="contentFrame" />
+```
+
+Vanuit `MainWindow.xaml.cs` navigeer je naar een Page met `Navigate` en het `typeof(...)` van die Page:
+
+```csharp
+contentFrame.Navigate(typeof(AddCitizenPage));
+```
+
+Sta je al **in** een Page en wil je naar een andere Page navigeren? Dan hoef je niet naar `contentFrame` te zoeken: elke Page kent via `this.Frame` de Frame waarin hij zelf getoond wordt.
+
+```csharp
+this.Frame.Navigate(typeof(OverviewPage));
+```
+
+<x-callout type="note">
+
+Je kunt `Navigate(...)` ook een tweede argument meegeven om gegevens naar de volgende Page te sturen, en die daar weer uitlezen door `OnNavigatedTo` te overschrijven. Dat is verdiepende stof — voor nu is het genoeg om te weten dat het kan.
+
+</x-callout>
+
+<x-keuzevraag>
+question: Je staat in `AddCitizenPage` en wilt terug naar `OverviewPage`. Waarom gebruik je daarvoor `this.Frame.Navigate(...)` in plaats van `contentFrame.Navigate(...)`?
+options:
+  - "`contentFrame` bestaat niet meer zodra je in een Page zit"
+  - "`this.Frame` verwijst vanzelf naar de Frame waarin deze Page getoond wordt; `contentFrame` is een veld van MainWindow, niet van de Page"
+  - Het maakt niets uit, beide werken altijd
+  - "`Navigate` bestaat alleen op `this.Frame`"
+correct: 1
+explanation: "`contentFrame` is een x:Name in MainWindow.xaml — een Page kent dat veld niet. Elke Page heeft via `this.Frame` automatisch toegang tot de Frame waarin hij draait."
+</x-keuzevraag>
+
+## 5.6 Een knop die iets toevoegt aan de database
+
+Op `AddCitizenPage` zet je invoervelden (bijvoorbeeld `nameTextBox` en `jobTextBox`) en een knop "Opslaan". In de `Click`-handler van die knop maak je een nieuw object van de invoer, sla je het op met EF Core, en navigeer je terug naar het overzicht:
+
+```csharp
+private void saveButton_Click(object sender, RoutedEventArgs e)
+{
+    using (var db = new AppDbContext())
+    {
+        db.Citizens.Add(new Citizen
+        {
+            Name = nameTextBox.Text,
+            Job = jobTextBox.Text
+        });
+        db.SaveChanges();
+    }
+
+    this.Frame.Navigate(typeof(OverviewPage));
+}
+```
+
+<x-callout type="tip">
+
+Dit is dezelfde `Add` + `SaveChanges` die je al kent uit week 4. Het enige nieuwe is dát de waarden nu uit invoervelden op een eigen Page komen, in plaats van uit `Console.ReadLine`.
+
+</x-callout>
+
+<x-invul>
+prompt: Vul de twee regels aan die de nieuwe bewoner opslaan in de database.
+code: |-
+  db.Citizens.___(new Citizen { Name = nameTextBox.Text, Job = jobTextBox.Text });
+  db.___();
+blanks:
+  - answer: Add
+  - answer: SaveChanges
+explanation: "Add zet het object klaar in de context; SaveChanges schrijft het echt naar de database."
+</x-invul>
+
+<x-callout type="note">
+
+Volgende week (6) ga je hierop verder: een bewoner **selecteren** in de `ListView` en daarna **wijzigen** of **verwijderen** — nog zonder aparte Page.
+
+</x-callout>
 
 <x-nav label="Klaar met de theorie?">
 [Oefeningen](/pages/week5-oefeningen.html)
