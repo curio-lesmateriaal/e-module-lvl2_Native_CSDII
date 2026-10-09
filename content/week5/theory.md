@@ -169,18 +169,42 @@ explanation: "`contentFrame` is een x:Name in MainWindow.xaml — een Page kent 
 
 ## 5.6 Een knop die iets toevoegt aan de database
 
-Op `AddCitizenPage` zet je invoervelden (bijvoorbeeld `nameTextBox` en `jobTextBox`) en een knop "Opslaan". In de `Click`-handler van die knop maak je een nieuw object van de invoer, sla je het op met EF Core, en navigeer je terug naar het overzicht:
+Op `AddCitizenPage` zet je invoervelden (bijvoorbeeld `nameTextBox` en `jobTextBox`) en een knop "Opslaan". Om daarmee een nieuwe `Citizen` aan te maken, gebruiken we de constructor — weet je nog hoe je die in week 1 bij `Car` hebt geschreven? Bij `Citizen` ziet dat er zo uit:
+
+```csharp
+public class Citizen
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public DateTime DateOfBirth { get; set; }
+    public string Job { get; set; }
+
+    public Citizen()
+    {
+    }
+
+    public Citizen(string name, string job)
+    {
+        this.Name = name;
+        this.Job = job;
+    }
+}
+```
+
+<x-callout type="note">
+
+`Citizen` heeft hier **twee** constructors: een lege (die gebruikt EF Core o.a. bij `HasData` in §5.3) en een met `name` en `job`. Dat heet **overloaden** — je kent het al uit eerdere weken.
+
+</x-callout>
+
+In de `Click`-handler van de knop maak je met die tweede constructor een nieuw object van de invoer, sla je het op met EF Core, en navigeer je terug naar het overzicht:
 
 ```csharp
 private void saveButton_Click(object sender, RoutedEventArgs e)
 {
     using (var db = new AppDbContext())
     {
-        db.Citizens.Add(new Citizen
-        {
-            Name = nameTextBox.Text,
-            Job = jobTextBox.Text
-        });
+        db.Citizens.Add(new Citizen(nameTextBox.Text, jobTextBox.Text));
         db.SaveChanges();
     }
 
@@ -197,7 +221,7 @@ Dit is dezelfde `Add` + `SaveChanges` die je al kent uit week 4. Het enige nieuw
 <x-invul>
 prompt: Vul de twee regels aan die de nieuwe bewoner opslaan in de database.
 code: |-
-  db.Citizens.___(new Citizen { Name = nameTextBox.Text, Job = jobTextBox.Text });
+  db.Citizens.___(new Citizen(nameTextBox.Text, jobTextBox.Text));
   db.___();
 blanks:
   - answer: Add
