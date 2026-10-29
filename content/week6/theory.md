@@ -3,11 +3,12 @@ week: 6
 title: WinUI-app 2 — selecteren & CRUD
 goal: je kunt in een WinUI 3-app een item in een ListView selecteren en vanuit de UI objecten toevoegen, wijzigen en verwijderen, en de lijst daarna verversen
 accent: cyan
-summary: "Vorige week toonde je gegevens in een ListView. Deze week maak je de app interactief: je klikt op een item om het te selecteren, en je voegt met knoppen en invoervelden de vier CRUD-bewerkingen toe. Steeds ververs je de lijst zodat de gebruiker het resultaat ziet."
+summary: "Vorige week toonde je gegevens in een ListView. Deze week maak je de app interactief: je klikt op een item om het te selecteren, en je voegt met knoppen en invoervelden de vier CRUD-bewerkingen toe. Je leert ook met LINQ (Where, Contains, OrderBy) de database filteren en sorteren, bijvoorbeeld voor een zoekveld. Steeds ververs je de lijst zodat de gebruiker het resultaat ziet."
 leeruitkomsten:
   - Ik kan op een ListView-item klikken en het aangeklikte object gebruiken
   - Ik kan vanuit de UI een object toevoegen, wijzigen en verwijderen en opslaan met SaveChanges
   - Ik kan de ListView verversen na een wijziging
+  - Ik kan met Where, FirstOrDefault, Contains en OrderBy de database filteren en sorteren
   - Ik weet hoe ik mijn wijzigingen laat blijven bestaan na een herstart
 ---
 
@@ -126,7 +127,108 @@ private void RefreshList()
 
 Roep `RefreshList()` aan bij het opstarten (in plaats van de vul-code die je in week 5 in de constructor zette) én na elke `SaveChanges`.
 
-## 6.5 Data laten blijven bestaan
+## 6.5 Filteren met LINQ: Where en meer
+
+Tot nu toe haal je altijd **alles** op (`db.Citizens.ToList()`) of precies **één** item (`Find`). Vaak wil je maar een deel: bijvoorbeeld alleen bewoners met een bepaald beroep, of alleen bewoners van wie de naam met iets begint. Daarvoor gebruik je **LINQ** (Language Integrated Query). `Single`, `First` en `FirstOrDefault` uit week 4 zijn trouwens zelf ook al LINQ-methoden — die geven alleen één object terug in plaats van een lijst.
+
+`Where(...)` filtert op een voorwaarde (een lambda, net als bij `Single`/`First`) en levert een **collectie** op — geen enkel object, dus:
+
+```csharp
+using (var db = new AppDbContext())
+{
+    List<Citizen> developers = db.Citizens
+        .Where(c => c.Job == "Software Developer")
+        .ToList();
+}
+```
+
+Wil je niet een hele lijst, maar maar **één** bewoner die aan een voorwaarde voldoet? Dan gebruik je, net als in week 4, `FirstOrDefault` — alleen nu met een eigen voorwaarde in plaats van een vaste:
+
+```csharp
+using (var db = new AppDbContext())
+{
+    Citizen? developer = db.Citizens
+        .FirstOrDefault(c => c.Job == "Software Developer");
+
+    if (developer == null)
+    {
+        // geen enkele bewoner heeft dit beroep
+    }
+    else
+    {
+        nameTextBox.Text = developer.Name;
+    }
+}
+```
+
+<x-callout type="note">
+
+Het verschil met `Find` (zie 6.3): `Find` zoekt altijd op de primaire sleutel (`Id`). `FirstOrDefault` (en `Where`) zoeken op **elke** voorwaarde die je zelf opgeeft — hier bijvoorbeeld op `Job` in plaats van `Id`.
+
+</x-callout>
+
+<x-keuzevraag>
+question: "Je doet `db.Citizens.FirstOrDefault(c => c.Job == \"Astronaut\")` en er is geen enkele bewoner met dat beroep. Wat gebeurt er?"
+options:
+  - Je krijgt een foutmelding (exception)
+  - Je krijgt null terug
+  - Je krijgt een lege Citizen terug met alle properties op hun standaardwaarde
+  - De app blijft hangen
+correct: 1
+explanation: "FirstOrDefault geeft de 'default'-waarde terug als niets voldoet — voor een class is dat null. Controleer dus altijd op null voordat je verder werkt met het resultaat."
+</x-keuzevraag>
+
+Je kunt `Where` combineren met andere LINQ-methoden, bijvoorbeeld `Contains` om op tekst te zoeken en `OrderBy` om te sorteren:
+
+```csharp
+using (var db = new AppDbContext())
+{
+    List<Citizen> resultaten = db.Citizens
+        .Where(c => c.Name.Contains(zoekterm))
+        .OrderBy(c => c.Name)
+        .ToList();
+}
+```
+
+Dat is meteen bruikbaar in je eigen app: breid `RefreshList()` (zie 6.4) uit met een zoekterm, bijvoorbeeld uit een `searchTextBox`:
+
+```csharp
+private void RefreshList(string zoekterm = "")
+{
+    using (var db = new AppDbContext())
+    {
+        citizenListView.ItemsSource = db.Citizens
+            .Where(c => c.Name.Contains(zoekterm))
+            .OrderBy(c => c.Name)
+            .ToList();
+    }
+}
+```
+
+Roep je `RefreshList()` aan zonder argument, dan is `zoekterm` leeg en is `c.Name.Contains("")` altijd waar — je ziet dus gewoon iedereen. Vul je iets in `searchTextBox` in en roep je `RefreshList(searchTextBox.Text)` aan, dan filtert de lijst live.
+
+Een paar andere veelgebruikte LINQ-methoden:
+
+- `Count()` — hoeveel items voldoen (een getal, geen lijst);
+- `Any(...)` — bestaat er minstens één item dat voldoet (`true`/`false`);
+- `OrderByDescending(...)` — sorteert aflopend in plaats van oplopend.
+
+<x-callout type="tip">
+
+`Where` en `OrderBy` stellen alleen de query samen. Pas bij `.ToList()` (of een `foreach`) wordt die echt tegen de database uitgevoerd.
+
+</x-callout>
+
+<x-invul>
+prompt: Vul de regel aan die alle bewoners met beroep "Software Developer" ophaalt.
+code: |-
+  List<Citizen> developers = db.Citizens.___(c => c.Job == "Software Developer").ToList();
+blanks:
+  - answer: Where
+explanation: "Where filtert de DbSet op een voorwaarde en levert een collectie op; ToList() voert de query uit."
+</x-invul>
+
+## 6.6 Data laten blijven bestaan
 
 In week 5 zette je `EnsureDeleted()` én `EnsureCreated()` in je `MainWindow`-constructor. `EnsureDeleted()` gooit bij **elke** start de hele database weg — dan zijn je toegevoegde en gewijzigde bewoners na een herstart weer verdwenen.
 
